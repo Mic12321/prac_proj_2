@@ -1,10 +1,57 @@
 import React from "react";
+import DashboardButton from "../components/DashboardButton";
+import stockManagementImg from "../assets/stock.png";
+import orderImg from "../assets/order.png";
+import pendingImg from "../assets/pending.png";
+import analysisImg from "../assets/analysis.png";
+import accountMangementImg from "../assets/account_management.png";
 
-const Home: React.FC = () => {
+interface HomeProps {
+  isAdmin: boolean;
+}
+
+const Home: React.FC<HomeProps> = ({ isAdmin }) => {
   return (
-    <div>
-      <h1>Welcome!</h1>
-      <p>Home page</p>
+    <div className="container d-flex flex-column align-items-center justify-content-center">
+      <h2 className="mb-4 text-center">Welcome to Dashboard</h2>
+
+      <div className="row g-3 w-100 text-center">
+        <DashboardButton
+          image={stockManagementImg}
+          label="Stock Management Button"
+          displayName="Manage Stock"
+          route="/stock-management"
+        />
+        <DashboardButton
+          image={orderImg}
+          label="Ordering Button"
+          displayName="Start Ordering"
+          route="/ordering"
+        />
+
+        <DashboardButton
+          image={pendingImg}
+          label="Pending Orders Button"
+          displayName="View Pending Orders"
+          route="/pending-orders"
+        />
+        {isAdmin && (
+          <DashboardButton
+            image={analysisImg}
+            label="Data Analysis Button"
+            displayName="View Data Analysis"
+            route="/analysis"
+          />
+        )}
+        {isAdmin && (
+          <DashboardButton
+            image={accountMangementImg}
+            label="Account Management Button"
+            displayName="Manage Account"
+            route="/account-management"
+          />
+        )}
+      </div>
     </div>
   );
 };

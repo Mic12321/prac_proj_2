@@ -4,9 +4,10 @@ import logo from "../assets/logo.png";
 
 interface LoginProps {
   setIsAuthenticated: (auth: boolean) => void;
+  setIsAdmin: (isAdmin: boolean) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ setIsAuthenticated }) => {
+const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setIsAdmin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,13 +27,16 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated }) => {
     setUsername("");
     setPassword("");
 
+    const isAdminUser = username === "admin";
+    setIsAdmin(isAdminUser);
+
     setIsAuthenticated(true);
 
     navigate("/home");
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
+    <div className="d-flex justify-content-center align-items-center">
       <div className="card p-4 shadow text-center" style={{ width: "350px" }}>
         <div className="mb-3">
           <img

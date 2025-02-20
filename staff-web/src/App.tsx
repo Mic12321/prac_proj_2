@@ -9,6 +9,7 @@ import "./App.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   return (
     <Router>
@@ -19,19 +20,32 @@ function App() {
           <Route
             path="/"
             element={
-              !isAuthenticated ? <Navigate to="/login" replace /> : <Home />
+              !isAuthenticated ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <Home isAdmin={isAdmin} />
+              )
             }
           />
 
           <Route
             path="/login"
-            element={<Login setIsAuthenticated={setIsAuthenticated} />}
+            element={
+              <Login
+                setIsAuthenticated={setIsAuthenticated}
+                setIsAdmin={setIsAdmin}
+              />
+            }
           />
 
           <Route
             path="/home"
             element={
-              isAuthenticated ? <Home /> : <Navigate to="/login" replace />
+              isAuthenticated ? (
+                <Home isAdmin={isAdmin} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
         </Routes>
