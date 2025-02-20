@@ -24,9 +24,9 @@ const Home: React.FC<HomeProps> = ({ isAdmin }) => {
         />
         <DashboardButton
           image={orderImg}
-          label="Ordering Button"
+          label="Order Button"
           displayName="Start Ordering"
-          route="/ordering"
+          route="/order"
         />
 
         <DashboardButton

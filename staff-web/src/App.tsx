@@ -1,10 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-// import Stock from "./pages/Stock";
-import Navbar from "./components/Navbar";
+import StockManagement from "./pages/StockManagement";
+import Analysis from "./pages/Analysis";
+import AccountManagement from "./pages/AccountManagement";
+import PendingOrders from "./pages/PendingOrders";
+import Order from "./pages/Order";
 
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
 function App() {
@@ -20,11 +25,10 @@ function App() {
           <Route
             path="/"
             element={
-              !isAuthenticated ? (
-                <Navigate to="/login" replace />
-              ) : (
-                <Home isAdmin={isAdmin} />
-              )
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<Home isAdmin={isAdmin} />}
+              />
             }
           />
 
@@ -41,11 +45,55 @@ function App() {
           <Route
             path="/home"
             element={
-              isAuthenticated ? (
-                <Home isAdmin={isAdmin} />
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<Home isAdmin={isAdmin} />}
+              />
+            }
+          />
+          <Route
+            path="/stock-management"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<StockManagement />}
+              />
+            }
+          />
+          <Route
+            path="/analysis"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<Analysis />}
+              />
+            }
+          />
+          <Route
+            path="/order"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<Order />}
+              />
+            }
+          />
+          <Route
+            path="/pending-orders"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<PendingOrders />}
+              />
+            }
+          />
+          <Route
+            path="/account-management"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<AccountManagement />}
+              />
             }
           />
         </Routes>
