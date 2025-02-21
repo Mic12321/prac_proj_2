@@ -4,9 +4,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 interface NavbarProps {
   setIsAuthenticated: (auth: boolean) => void;
+  username: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated }) => {
+const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated, username }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -16,13 +17,16 @@ const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated }) => {
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div className="container">
+      <div className="container d-flex justify-content-between align-items-center">
         <Link className="navbar-brand" to="/home">
           Company Name
         </Link>
-        <button className="btn btn-danger" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="d-flex align-items-center">
+          <span className="text-white me-3">Hi, {username}</span>
+          <button className="btn btn-danger" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
   );

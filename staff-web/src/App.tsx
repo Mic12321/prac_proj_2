@@ -16,9 +16,14 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  //
+  const [username, setUsername] = useState("testUsername");
+
   return (
     <Router>
-      {isAuthenticated && <Navbar setIsAuthenticated={setIsAuthenticated} />}
+      {isAuthenticated && (
+        <Navbar setIsAuthenticated={setIsAuthenticated} username={username} />
+      )}
 
       <div className="container mt-4">
         <Routes>
