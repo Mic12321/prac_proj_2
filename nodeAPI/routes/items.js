@@ -12,8 +12,14 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { item_name, item_description, stock_quantity, unit_name, price } =
-    req.body;
+  const {
+    item_name,
+    item_description,
+    stock_quantity,
+    unit_name,
+    price,
+    menu_category_id,
+  } = req.body;
   try {
     const newItem = await Item.create({
       item_name,
@@ -21,6 +27,7 @@ router.post("/", async (req, res) => {
       stock_quantity,
       unit_name,
       price,
+      menu_category_id,
     });
     res.json(newItem);
   } catch (err) {
