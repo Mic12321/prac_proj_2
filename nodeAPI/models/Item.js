@@ -37,6 +37,10 @@ const Item = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    menu_category_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     picture: {
       type: DataTypes.BLOB,
       allowNull: true,

@@ -12,6 +12,7 @@ const OrderItems = sequelize.define(
     },
     order_id: {
       type: DataTypes.INTEGER,
+      primaryKey: true,
       allowNull: false,
     },
     quantity: {
@@ -22,6 +23,12 @@ const OrderItems = sequelize.define(
   {
     tableName: "order_items",
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ["order_id", "order_item_id"],
+      },
+    ],
   }
 );
 
