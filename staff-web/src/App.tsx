@@ -7,6 +7,8 @@ import Analysis from "./pages/Analysis";
 import AccountManagement from "./pages/AccountManagement";
 import PendingOrders from "./pages/PendingOrders";
 import Order from "./pages/Order";
+import SearchItem from "./pages/SearchItem";
+import ModifyMenu from "./pages/ModifyMenu";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -92,12 +94,30 @@ function App() {
               />
             }
           />
-          <Route
+          <Route // Only admin can access, has to moodify in the future
             path="/account-management"
             element={
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<AccountManagement />}
+              />
+            }
+          />
+          <Route
+            path="/search-item"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<SearchItem />}
+              />
+            }
+          />
+          <Route
+            path="/modify-menu"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<ModifyMenu />}
               />
             }
           />
