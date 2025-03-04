@@ -9,6 +9,7 @@ import PendingOrders from "./pages/PendingOrders";
 import Order from "./pages/Order";
 import SearchItem from "./pages/SearchItem";
 import ModifyMenu from "./pages/ModifyMenu";
+import AddItem from "./pages/AddItem";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -118,6 +119,15 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<ModifyMenu />}
+              />
+            }
+          />
+          <Route
+            path="/add-item"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<AddItem />}
               />
             }
           />
