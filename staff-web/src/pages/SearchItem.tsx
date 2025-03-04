@@ -1,81 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
-// Sample data for items
-const initialItems = [
-  { id: 1, name: "Apple", description: "A red fruit" },
-  { id: 2, name: "Banana", description: "A yellow fruit" },
-  { id: 3, name: "Carrot", description: "An orange vegetable" },
-  { id: 4, name: "Date", description: "A sweet brown fruit" },
-  { id: 5, name: "Eggplant", description: "A purple vegetable" },
+// Define the structure of an item
+interface Item {
+  id: number;
+  name: string;
+  description: string;
+  menu_category_id: number;
+  category_name?: string; // New field for displaying category name
+}
+
+// Define the structure of a category
+interface Category {
+  id: number;
+  name: string;
+}
+
+// Sample initial items
+const initialItems: Item[] = [
+  { id: 1, name: "Apple", description: "A red fruit", menu_category_id: 1 },
+  { id: 2, name: "Banana", description: "A yellow fruit", menu_category_id: 2 },
+];
+
+// Sample category data (this would come from an API in a real application)
+const categories: Category[] = [
+  { id: 1, name: "Fruits" },
+  { id: 2, name: "Vegetables" },
 ];
 
 const SearchItem: React.FC = () => {
-  // State for search query
-  const [searchQuery, setSearchQuery] = useState("");
-  // State for items (filtered or all)
-  const [items, setItems] = useState(initialItems);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [items, setItems] = useState<Item[]>([]);
+  const [editedItem, setEditedItem] = useState<Item | null>(null);
 
-  // State for editing item details
-  const [editedItem, setEditedItem] = useState<{
-    id: number;
-    name: string;
-    description: string;
-  } | null>(null);
+  // Assign category names to items
+  useEffect(() => {
+    const updatedItems = initialItems.map((item) => ({
+      ...item,
+      category_name:
+        categories.find((cat) => cat.id === item.menu_category_id)?.name ||
+        "Unknown",
+    }));
+    setItems(updatedItems);
+  }, []);
 
-  // Handle search query change
+  // Handle search query
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    // Filter items based on search query
     if (query === "") {
-      setItems(initialItems); // Reset to initial items when search is empty
+      setItems(initialItems);
     } else {
-      const filteredItems = initialItems.filter(
-        (item) =>
-          item.name.toLowerCase().includes(query.toLowerCase()) ||
-          item.description.toLowerCase().includes(query.toLowerCase())
+      setItems(
+        initialItems
+          .map((item) => ({
+            ...item,
+            category_name:
+              categories.find((cat) => cat.id === item.menu_category_id)
+                ?.name || "Unknown",
+          }))
+          .filter(
+            (item) =>
+              item.name.toLowerCase().includes(query) ||
+              item.description.toLowerCase().includes(query) ||
+              item.category_name?.toLowerCase().includes(query)
+          )
       );
-      setItems(filteredItems);
     }
   };
 
-  // Handle editing an item
-  const handleEditItem = (item: {
-    id: number;
-    name: string;
-    description: string;
-  }) => {
+  const handleEditItem = (item: Item) => {
     setEditedItem(item);
   };
 
-  // Handle saving edited item
   const handleSaveItem = () => {
     if (editedItem) {
       setItems((prevItems) =>
         prevItems.map((item) =>
-          item.id === editedItem.id
-            ? {
-                ...item,
-                name: editedItem.name,
-                description: editedItem.description,
-              }
-            : item
+          item.id === editedItem.id ? { ...item, ...editedItem } : item
         )
       );
-      setEditedItem(null); // Reset editing state
-    }
-  };
-
-  // Handle change in item details (name or description)
-  const handleItemChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<HTMLTextAreaElement>,
-    field: "name" | "description"
-  ) => {
-    if (editedItem) {
-      setEditedItem({ ...editedItem, [field]: e.target.value });
+      setEditedItem(null);
     }
   };
 
@@ -83,18 +90,22 @@ const SearchItem: React.FC = () => {
     <div className="container mt-4">
       <h1>Search and Edit Items</h1>
 
-      {/* Search Input */}
-      <div className="mb-4">
+      <div className="mb-4 d-flex">
         <input
           type="text"
-          className="form-control"
+          className="form-control me-2"
           placeholder="Search for items..."
           value={searchQuery}
           onChange={handleSearchChange}
         />
+        <button
+          className="btn btn-success"
+          onClick={() => navigate("/add-item")}
+        >
+          Add New Item
+        </button>
       </div>
 
-      {/* Item List */}
       <div>
         {items.length === 0 ? (
           <p>No items found.</p>
@@ -108,12 +119,19 @@ const SearchItem: React.FC = () => {
                       type="text"
                       className="form-control mb-2"
                       value={editedItem.name}
-                      onChange={(e) => handleItemChange(e, "name")}
+                      onChange={(e) =>
+                        setEditedItem({ ...editedItem, name: e.target.value })
+                      }
                     />
                     <textarea
                       className="form-control mb-2"
                       value={editedItem.description}
-                      onChange={(e) => handleItemChange(e, "description")}
+                      onChange={(e) =>
+                        setEditedItem({
+                          ...editedItem,
+                          description: e.target.value,
+                        })
+                      }
                     />
                     <button
                       className="btn btn-success"
@@ -126,6 +144,9 @@ const SearchItem: React.FC = () => {
                   <div>
                     <h5>{item.name}</h5>
                     <p>{item.description}</p>
+                    <p>
+                      <strong>Category:</strong> {item.category_name}
+                    </p>
                     <button
                       className="btn btn-primary"
                       onClick={() => handleEditItem(item)}
