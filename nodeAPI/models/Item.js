@@ -41,6 +41,10 @@ const Item = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    for_sale: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
     picture: {
       type: DataTypes.BLOB,
       allowNull: true,
