@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Modal, Button, Form } from "react-bootstrap";
 
 interface ItemFormProps {
   initialData?: {
@@ -30,13 +31,20 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
     }
   );
 
+  const [categories, setCategories] = useState([
+    { id: 1, name: "Fruits" },
+    { id: 2, name: "Vegetables" },
+  ]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value, type } = e.target;
-
     let newValue: any = value;
 
     if (type === "number") {
@@ -57,6 +65,32 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
     }
   };
 
+  const handleCategorySubmit = () => {
+    const trimmedCategory = newCategory.trim();
+    if (!trimmedCategory) return;
+
+    const categoryExists = categories.some(
+      (category) =>
+        category.name.toLowerCase() === trimmedCategory.toLowerCase()
+    );
+
+    if (!categoryExists) {
+      const newCategoryObj = {
+        id: categories.length + 1,
+        name: trimmedCategory,
+      };
+      setCategories([...categories, newCategoryObj]);
+      setFormData({ ...formData, menu_category_id: newCategoryObj.id });
+    }
+
+    setNewCategory("");
+    setShowModal(false);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({ ...formData, menu_category_id: Number(e.target.value) });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -75,6 +109,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           required
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Description</label>
         <textarea
@@ -84,6 +119,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           onChange={handleChange}
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Stock Quantity</label>
         <input
@@ -95,6 +131,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           required
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Unit Name</label>
         <input
@@ -105,6 +142,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           onChange={handleChange}
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Low Stock Quantity</label>
         <input
@@ -115,6 +153,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           onChange={handleChange}
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Price</label>
         <input
@@ -126,18 +165,30 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           required
         />
       </div>
+
       <div className="mb-3">
         <label className="form-label">Category</label>
         <select
           name="menu_category_id"
           className="form-control"
           value={formData.menu_category_id}
-          onChange={handleChange}
+          onChange={handleCategoryChange}
         >
-          <option value="1">Fruits</option>
-          <option value="2">Vegetables</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
         </select>
+        <button
+          type="button"
+          className="btn btn-link text-primary mt-2"
+          onClick={() => setShowModal(true)}
+        >
+          Create a new category
+        </button>
       </div>
+
       <div className="mb-3">
         <label className="form-label">For Sale</label>
         <select
@@ -150,6 +201,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           <option value="false">No</option>
         </select>
       </div>
+
       <div className="mb-3">
         <label className="form-label">Upload Picture</label>
         <input
@@ -159,9 +211,35 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           onChange={handleFileChange}
         />
       </div>
+
       <button type="submit" className="btn btn-primary">
         Save Item
       </button>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Category</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Category Name</Form.Label>
+            <Form.Control
+              type="text"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              placeholder="Enter category name"
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleCategorySubmit}>
+            Add Category
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </form>
   );
 };
