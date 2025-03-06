@@ -32,12 +32,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   );
 
   const [categories, setCategories] = useState([
-    { id: 1, name: "Fruits" },
-    { id: 2, name: "Vegetables" },
+    { id: 1, name: "Fruits", description: "Fresh and organic fruits." },
+    {
+      id: 2,
+      name: "Vegetables",
+      description: "Healthy and farm-fresh vegetables.",
+    },
   ]);
 
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -67,7 +72,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
 
   const handleCategorySubmit = () => {
     const trimmedCategory = newCategory.trim();
-    if (!trimmedCategory) return;
+    const trimmedDescription = newCategoryDescription.trim();
+    if (!trimmedCategory || !trimmedDescription) return;
 
     const categoryExists = categories.some(
       (category) =>
@@ -78,18 +84,24 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
       const newCategoryObj = {
         id: categories.length + 1,
         name: trimmedCategory,
+        description: trimmedDescription,
       };
       setCategories([...categories, newCategoryObj]);
       setFormData({ ...formData, menu_category_id: newCategoryObj.id });
     }
 
     setNewCategory("");
+    setNewCategoryDescription("");
     setShowModal(false);
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData({ ...formData, menu_category_id: Number(e.target.value) });
   };
+
+  const selectedCategory = categories.find(
+    (category) => category.id === formData.menu_category_id
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,6 +199,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
         >
           Create a new category
         </button>
+
+        {selectedCategory && (
+          <p className="mt-2 text-muted">
+            <strong>Description:</strong> {selectedCategory.description}
+          </p>
+        )}
       </div>
 
       <div className="mb-3">
@@ -228,6 +246,15 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               placeholder="Enter category name"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Category Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              value={newCategoryDescription}
+              onChange={(e) => setNewCategoryDescription(e.target.value)}
+              placeholder="Enter category description"
             />
           </Form.Group>
         </Modal.Body>
