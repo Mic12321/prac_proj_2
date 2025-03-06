@@ -8,6 +8,7 @@ const Item = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
+      autoIncrement: true,
     },
     item_name: {
       type: DataTypes.STRING(30),
@@ -44,6 +45,7 @@ const Item = sequelize.define(
     for_sale: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
+      defaultValue: false,
     },
     picture: {
       type: DataTypes.BLOB,

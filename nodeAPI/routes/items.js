@@ -19,6 +19,7 @@ router.post("/", async (req, res) => {
     unit_name,
     price,
     menu_category_id,
+    for_sale,
   } = req.body;
   try {
     const newItem = await Item.create({
@@ -28,6 +29,7 @@ router.post("/", async (req, res) => {
       unit_name,
       price,
       menu_category_id,
+      for_sale,
     });
     res.json(newItem);
   } catch (err) {

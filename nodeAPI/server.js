@@ -1,5 +1,6 @@
 const express = require("express");
 const { sequelize } = require("./models");
+const cors = require("cors");
 const app = express();
 require("dotenv").config();
 
@@ -17,6 +18,10 @@ sequelize
   .catch((err) => {
     console.error("Unable to connect to the database or sync tables:", err);
   });
+
+if (process.env.NODE_ENV === "development") {
+  app.use(cors());
+}
 
 app.use(express.json());
 
