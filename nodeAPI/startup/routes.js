@@ -7,8 +7,8 @@ const menuRoutes = require("../routes/menu");
 module.exports = function (app) {
   app.use(express.json());
 
-  app.use("/users", userRoutes);
-  app.use("/orders", orderRoutes);
-  app.use("/items", itemRoutes);
-  app.use("/menu", menuRoutes);
+  app.use("/api/users", userRoutes);
+  app.use("/api/orders", orderRoutes);
+  app.use("/api/items", itemRoutes);
+  app.use("/api/menu", menuRoutes);
 };
