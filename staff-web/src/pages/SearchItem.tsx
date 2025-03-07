@@ -1,72 +1,84 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
+import { getAllItems } from "../services/itemService";
+import { fetchCategories } from "../services/categoryService";
 
 // Define the structure of an item
 interface Item {
-  id: number;
-  name: string;
-  description: string;
-  menu_category_id: number;
-  category_name?: string; // New field for displaying category name
+  item_id?: number;
+  item_name: string;
+  item_description?: string;
+  stock_quantity: number;
+  unit_name?: string;
+  low_stock_quantity?: number;
+  price: number;
+  category_id: number;
+  for_sale: boolean;
+  picture?: string;
+  category_name?: string;
 }
 
 // Define the structure of a category
 interface Category {
-  id: number;
-  name: string;
+  category_id?: number;
+  category_name: string;
+  category_description: string;
 }
-
-// Sample initial items
-const initialItems: Item[] = [
-  { id: 1, name: "Apple", description: "A red fruit", menu_category_id: 1 },
-  { id: 2, name: "Banana", description: "A yellow fruit", menu_category_id: 2 },
-];
-
-// Sample category data (this would come from an API in a real application)
-const categories: Category[] = [
-  { id: 1, name: "Fruits" },
-  { id: 2, name: "Vegetables" },
-];
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [items, setItems] = useState<Item[]>([]);
+  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  // Assign category names to items
-  useEffect(() => {
-    const updatedItems = initialItems.map((item) => ({
-      ...item,
-      category_name:
-        categories.find((cat) => cat.id === item.menu_category_id)?.name ||
-        "Unknown",
-    }));
-    setItems(updatedItems);
+  const fetchData = useCallback(async () => {
+    try {
+      const [categoriesData, itemsData] = await Promise.all([
+        fetchCategories(),
+        getAllItems(),
+      ]);
+
+      setCategories(categoriesData);
+
+      const updatedItems: Item[] = itemsData.map((item: any) => ({
+        ...item,
+        category_name:
+          categoriesData.find((cat) => cat.category_id === item.category_id)
+            ?.category_name || "Unknown",
+        picture:
+          item.picture instanceof File
+            ? URL.createObjectURL(item.picture)
+            : item.picture ?? undefined,
+      }));
+
+      setItems(updatedItems);
+      setFilteredItems(updatedItems);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Handle search query
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    if (query === "") {
-      setItems(initialItems);
+    if (!query) {
+      setFilteredItems(items);
     } else {
-      setItems(
-        initialItems
-          .map((item) => ({
-            ...item,
-            category_name:
-              categories.find((cat) => cat.id === item.menu_category_id)
-                ?.name || "Unknown",
-          }))
-          .filter(
-            (item) =>
-              item.name.toLowerCase().includes(query) ||
-              item.description.toLowerCase().includes(query) ||
-              item.category_name?.toLowerCase().includes(query)
-          )
+      setFilteredItems(
+        items.filter(
+          (item) =>
+            item.item_name.toLowerCase().includes(query) ||
+            item.item_description?.toLowerCase().includes(query) ||
+            item.category_name?.toLowerCase().includes(query)
+        )
       );
     }
   };
@@ -79,7 +91,16 @@ const SearchItem: React.FC = () => {
     if (editedItem) {
       setItems((prevItems) =>
         prevItems.map((item) =>
-          item.id === editedItem.id ? { ...item, ...editedItem } : item
+          item.item_id === editedItem.item_id
+            ? { ...item, ...editedItem }
+            : item
+        )
+      );
+      setFilteredItems((prevItems) =>
+        prevItems.map((item) =>
+          item.item_id === editedItem.item_id
+            ? { ...item, ...editedItem }
+            : item
         )
       );
       setEditedItem(null);
@@ -107,29 +128,32 @@ const SearchItem: React.FC = () => {
       </div>
 
       <div>
-        {items.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <p>No items found.</p>
         ) : (
           <ul className="list-group">
-            {items.map((item) => (
-              <li key={item.id} className="list-group-item">
-                {editedItem?.id === item.id ? (
+            {filteredItems.map((item) => (
+              <li key={item.item_id} className="list-group-item">
+                {editedItem?.item_id === item.item_id ? (
                   <div>
                     <input
                       type="text"
                       className="form-control mb-2"
-                      value={editedItem.name}
+                      value={editedItem?.item_name}
                       onChange={(e) =>
-                        setEditedItem({ ...editedItem, name: e.target.value })
+                        setEditedItem({
+                          ...editedItem!,
+                          item_name: e.target.value,
+                        })
                       }
                     />
                     <textarea
                       className="form-control mb-2"
-                      value={editedItem.description}
+                      value={editedItem?.item_description}
                       onChange={(e) =>
                         setEditedItem({
-                          ...editedItem,
-                          description: e.target.value,
+                          ...editedItem!,
+                          item_description: e.target.value,
                         })
                       }
                     />
@@ -141,12 +165,27 @@ const SearchItem: React.FC = () => {
                     </button>
                   </div>
                 ) : (
+                  // View Mode
                   <div>
-                    <h5>{item.name}</h5>
-                    <p>{item.description}</p>
+                    <h5>{item.item_name}</h5>
+                    <p>{item.item_description}</p>
                     <p>
                       <strong>Category:</strong> {item.category_name}
                     </p>
+                    <p>
+                      <strong>Stock:</strong> {item.stock_quantity}
+                    </p>
+                    <p>
+                      <strong>Price:</strong> ${item.price}
+                    </p>
+                    {item.picture && (
+                      <img
+                        src={item.picture}
+                        alt={item.item_name}
+                        className="img-fluid"
+                        style={{ maxWidth: "100px" }}
+                      />
+                    )}
                     <button
                       className="btn btn-primary"
                       onClick={() => handleEditItem(item)}
