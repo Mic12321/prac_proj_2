@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { fetchMenus, addMenu } from "../services/menuService";
+import { fetchCategories, addCategory } from "../services/categoryService";
 import { addItem } from "../services/itemService";
 
 interface ItemFormProps {
@@ -11,7 +11,7 @@ interface ItemFormProps {
     unit_name: string;
     low_stock_quantity?: number;
     price: number;
-    menu_category_id: number;
+    category_id: number;
     for_sale: boolean;
     picture?: File | null;
   };
@@ -27,14 +27,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
       unit_name: "",
       low_stock_quantity: 0,
       price: 0,
-      menu_category_id: 0,
+      category_id: 0,
       for_sale: true,
       picture: null,
     }
   );
 
   const [categories, setCategories] = useState<
-    { menu_id: number; category_name: string; category_description: string }[]
+    {
+      category_id: number;
+      category_name: string;
+      category_description: string;
+    }[]
   >([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -44,11 +48,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   useEffect(() => {
     const loadCategories = async () => {
       setLoadingCategories(true);
-      const categoryData = await fetchMenus();
+      const categoryData = await fetchCategories();
       setCategories(
         categoryData.map((category) => ({
           ...category,
-          menu_id: category.menu_id ?? 0,
+          category_id: category.category_id ?? 0,
         }))
       );
       setLoadingCategories(false);
@@ -96,7 +100,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
       );
 
       if (!existingCategory) {
-        const newCategoryObj = await addMenu({
+        const newCategoryObj = await addCategory({
           category_name: trimmedCategory,
           category_description: trimmedDescription,
         });
@@ -104,11 +108,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
         if (newCategoryObj) {
           setCategories((prevCategories) => [
             ...prevCategories,
-            { ...newCategoryObj, menu_id: newCategoryObj.menu_id ?? 0 },
+            { ...newCategoryObj, category_id: newCategoryObj.category_id ?? 0 },
           ]);
           setFormData({
             ...formData,
-            menu_category_id: newCategoryObj.menu_id ?? 0,
+            category_id: newCategoryObj.category_id ?? 0,
           });
         }
       }
@@ -122,11 +126,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, menu_category_id: Number(e.target.value) });
+    setFormData({ ...formData, category_id: Number(e.target.value) });
   };
 
   const selectedCategory = categories.find(
-    (category) => category.menu_id === formData.menu_category_id
+    (category) => category.category_id === formData.category_id
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -213,13 +217,13 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
       <div className="mb-3">
         <label className="form-label">Category</label>
         <select
-          name="menu_category_id"
+          name="category_id"
           className="form-control"
-          value={formData.menu_category_id}
+          value={formData.category_id}
           onChange={handleCategoryChange}
         >
           {categories.map((category) => (
-            <option key={category.menu_id} value={category.menu_id}>
+            <option key={category.category_id} value={category.category_id}>
               {category.category_name}
             </option>
           ))}
