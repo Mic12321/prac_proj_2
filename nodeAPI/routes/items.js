@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const Item = require("../models/Item");
+const Category = require("../models/Category");
 
 router.get("/", async (req, res) => {
   try {
-    const items = await Item.findAll();
+    const items = await Item.findAll({
+      include: [{ model: Category }],
+    });
     res.json(items);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -18,7 +21,7 @@ router.post("/", async (req, res) => {
     stock_quantity,
     unit_name,
     price,
-    menu_category_id,
+    category_id,
     for_sale,
   } = req.body;
   try {
@@ -28,7 +31,7 @@ router.post("/", async (req, res) => {
       stock_quantity,
       unit_name,
       price,
-      menu_category_id,
+      category_id,
       for_sale,
     });
     res.json(newItem);

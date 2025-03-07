@@ -1,10 +1,10 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
-const Menu = sequelize.define(
-  "Menu",
+const Category = sequelize.define(
+  "Category",
   {
-    menu_id: {
+    category_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
@@ -21,9 +21,9 @@ const Menu = sequelize.define(
     },
   },
   {
-    tableName: "menu",
+    tableName: "category",
     timestamps: false,
   }
 );
 
-module.exports = Menu;
+module.exports = Category;
