@@ -1,6 +1,6 @@
 import { API_ROUTES } from "../config/apiConfig";
 
-interface Item {
+export interface Item {
   item_id?: number;
   item_name: string;
   item_description?: string;
@@ -11,6 +11,7 @@ interface Item {
   category_id: number;
   for_sale: boolean;
   picture?: File | null;
+  category_name?: string;
 }
 
 export const addItem = async (item: Omit<Item, "item_id">): Promise<Item> => {
