@@ -1,29 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { getAllItems } from "../services/itemService";
-import { fetchCategories } from "../services/categoryService";
-
-// Define the structure of an item
-interface Item {
-  item_id?: number;
-  item_name: string;
-  item_description?: string;
-  stock_quantity: number;
-  unit_name?: string;
-  low_stock_quantity?: number;
-  price: number;
-  category_id: number;
-  for_sale: boolean;
-  picture?: string;
-  category_name?: string;
-}
-
-// Define the structure of a category
-interface Category {
-  category_id?: number;
-  category_name: string;
-  category_description: string;
-}
+import { getAllItems, Item } from "../services/itemService";
+import { fetchCategories, Category } from "../services/categoryService";
+import NavigateButton from "../components/NavigateButton";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
@@ -109,6 +88,10 @@ const SearchItem: React.FC = () => {
 
   return (
     <div className="container mt-4">
+      <NavigateButton
+        navUrl="/stock-management"
+        displayName="<- Back to stock management page"
+      />
       <h1>Search and Edit Items</h1>
 
       <div className="mb-4 d-flex">
@@ -178,14 +161,14 @@ const SearchItem: React.FC = () => {
                     <p>
                       <strong>Price:</strong> ${item.price}
                     </p>
-                    {item.picture && (
+                    {/* {item.picture && (
                       <img
                         src={item.picture}
                         alt={item.item_name}
                         className="img-fluid"
                         style={{ maxWidth: "100px" }}
                       />
-                    )}
+                    )} */}
                     <button
                       className="btn btn-primary"
                       onClick={() => handleEditItem(item)}
