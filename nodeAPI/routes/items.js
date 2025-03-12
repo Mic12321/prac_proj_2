@@ -24,7 +24,15 @@ router.post("/", async (req, res) => {
     category_id,
     for_sale,
   } = req.body;
+
   try {
+    const existingItem = await Item.findOne({ where: { item_name } });
+
+    if (existingItem)
+      return res
+        .status(400)
+        .json({ error: "Item with this name already exists" });
+
     const newItem = await Item.create({
       item_name,
       item_description,
@@ -34,6 +42,7 @@ router.post("/", async (req, res) => {
       category_id,
       for_sale,
     });
+
     res.json(newItem);
   } catch (err) {
     res.status(500).json({ error: err.message });
