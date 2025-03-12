@@ -13,6 +13,7 @@ const Item = sequelize.define(
     item_name: {
       type: DataTypes.STRING(30),
       allowNull: false,
+      unique: true,
     },
     item_description: {
       type: DataTypes.STRING(30),
