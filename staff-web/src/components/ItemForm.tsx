@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { fetchCategories, addCategory } from "../services/categoryService";
 import { addItem } from "../services/itemService";
+import ToastNotification from "../components/ToastNotification";
 
 interface ItemFormProps {
   initialData?: {
@@ -45,6 +46,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   const [newCategory, setNewCategory] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<"success" | "danger">(
+    "success"
+  );
+
   useEffect(() => {
     const loadCategories = async () => {
       setLoadingCategories(true);
@@ -55,6 +62,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           category_id: category.category_id ?? 0,
         }))
       );
+
+      if (categoryData.length > 0) {
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          category_id: categoryData[0].category_id ?? 0,
+        }));
+      }
+
       setLoadingCategories(false);
     };
 
@@ -137,10 +152,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
     e.preventDefault();
     try {
       const result = await addItem(formData);
-      console.log("Item created:", result);
+
+      setToastMessage("Item added successfully!");
+      setToastVariant("success");
+      setShowToast(true);
+
       onSubmit(result);
-    } catch (error) {
-      console.error("Error creating item:", error);
+    } catch (error: any) {
+      setToastMessage(
+        error.message || "An error occurred while adding the item."
+      );
+      setToastVariant("danger");
+      setShowToast(true);
     }
   };
 
@@ -304,6 +327,13 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <ToastNotification
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        variant={toastVariant}
+        delay={5000}
+      />
     </form>
   );
 };
