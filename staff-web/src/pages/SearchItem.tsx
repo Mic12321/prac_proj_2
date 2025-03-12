@@ -3,14 +3,21 @@ import { useNavigate } from "react-router";
 import { getAllItems, Item } from "../services/itemService";
 import { fetchCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
+import ToastNotification from "../components/ToastNotification";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Item;
+    direction: string;
+  } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -44,22 +51,28 @@ const SearchItem: React.FC = () => {
   }, [fetchData]);
 
   // Handle search query
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase();
-    setSearchQuery(query);
-
-    if (!query) {
-      setFilteredItems(items);
-    } else {
-      setFilteredItems(
-        items.filter(
-          (item) =>
-            item.item_name.toLowerCase().includes(query) ||
-            item.item_description?.toLowerCase().includes(query) ||
-            item.category_name?.toLowerCase().includes(query)
-        )
-      );
+  useEffect(() => {
+    const message = sessionStorage.getItem("successMessage");
+    if (message) {
+      setToastMessage(message);
+      setShowToast(true);
+      sessionStorage.removeItem("successMessage");
     }
+
+    setFilteredItems(
+      items.filter(
+        (item) =>
+          item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.item_description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          item.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
+  }, [searchQuery, items]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   const handleEditItem = (item: Item) => {
@@ -84,6 +97,27 @@ const SearchItem: React.FC = () => {
       );
       setEditedItem(null);
     }
+  };
+
+  // Sorting logic
+  const handleSort = (key: keyof Item) => {
+    let direction = "asc";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+
+    const sortedItems = [...filteredItems].sort((a, b) => {
+      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
+      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredItems(sortedItems);
+    setSortConfig({ key, direction });
   };
 
   return (
@@ -114,74 +148,89 @@ const SearchItem: React.FC = () => {
         {filteredItems.length === 0 ? (
           <p>No items found.</p>
         ) : (
-          <ul className="list-group">
-            {filteredItems.map((item) => (
-              <li key={item.item_id} className="list-group-item">
-                {editedItem?.item_id === item.item_id ? (
-                  <div>
-                    <input
-                      type="text"
-                      className="form-control mb-2"
-                      value={editedItem?.item_name}
-                      onChange={(e) =>
-                        setEditedItem({
-                          ...editedItem!,
-                          item_name: e.target.value,
-                        })
-                      }
-                    />
-                    <textarea
-                      className="form-control mb-2"
-                      value={editedItem?.item_description}
-                      onChange={(e) =>
-                        setEditedItem({
-                          ...editedItem!,
-                          item_description: e.target.value,
-                        })
-                      }
-                    />
-                    <button
-                      className="btn btn-success"
-                      onClick={handleSaveItem}
+          <table className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                {["item_name", "category_name", "stock_quantity", "price"].map(
+                  (key) => (
+                    <th
+                      key={key}
+                      onClick={() => handleSort(key as keyof Item)}
+                      style={{ cursor: "pointer", minWidth: "150px" }}
                     >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  // View Mode
-                  <div>
-                    <h5>{item.item_name}</h5>
-                    <p>{item.item_description}</p>
-                    <p>
-                      <strong>Category:</strong> {item.category_name}
-                    </p>
-                    <p>
-                      <strong>Stock:</strong> {item.stock_quantity}
-                    </p>
-                    <p>
-                      <strong>Price:</strong> ${item.price}
-                    </p>
-                    {/* {item.picture && (
-                      <img
-                        src={item.picture}
-                        alt={item.item_name}
-                        className="img-fluid"
-                        style={{ maxWidth: "100px" }}
-                      />
-                    )} */}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleEditItem(item)}
-                    >
-                      Edit
-                    </button>
-                  </div>
+                      {key.replace("_", " ").toUpperCase()}{" "}
+                      <span style={{ display: "inline-block", width: "15px" }}>
+                        {sortConfig?.key === key
+                          ? sortConfig.direction === "asc"
+                            ? "↑"
+                            : "↓"
+                          : " "}
+                      </span>
+                    </th>
+                  )
                 )}
-              </li>
-            ))}
-          </ul>
+                <th style={{ minWidth: "100px" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.item_id}>
+                  {editedItem?.item_id === item.item_id ? (
+                    <>
+                      <td>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={editedItem?.item_name}
+                          onChange={(e) =>
+                            setEditedItem({
+                              ...editedItem!,
+                              item_name: e.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>{item.category_name}</td>
+                      <td>{item.stock_quantity}</td>
+                      <td>${item.price}</td>
+                      <td>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={handleSaveItem}
+                        >
+                          Save
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{item.item_name}</td>
+                      <td>{item.category_name}</td>
+                      <td>{item.stock_quantity}</td>
+                      <td>${item.price}</td>
+                      <td>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleEditItem(item)}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
+      <ToastNotification
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        variant="success"
+        delay={5000}
+      />
     </div>
   );
 };

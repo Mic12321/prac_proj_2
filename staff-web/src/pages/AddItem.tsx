@@ -7,8 +7,8 @@ const AddItem: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubmit = (data: any) => {
-    console.log("New item added:", data);
-    navigate("/");
+    sessionStorage.setItem("successMessage", "Item added successfully!");
+    navigate("/search-item");
   };
 
   return (
