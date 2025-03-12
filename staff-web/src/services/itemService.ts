@@ -23,6 +23,11 @@ export const addItem = async (item: Omit<Item, "item_id">): Promise<Item> => {
     body: JSON.stringify(item),
   });
 
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to add item");
+  }
+
   const createdItem: Item = await response.json();
   return createdItem;
 };
