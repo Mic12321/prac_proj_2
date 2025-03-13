@@ -36,7 +36,7 @@ const SearchItem: React.FC = () => {
         ...item,
         category_name:
           categoriesData.find((cat) => cat.category_id === item.category_id)
-            ?.category_name || "Unknown",
+            ?.category_name || "",
         picture:
           item.picture instanceof File
             ? URL.createObjectURL(item.picture)
@@ -192,25 +192,29 @@ const SearchItem: React.FC = () => {
           <table className="table table-striped table-bordered">
             <thead>
               <tr>
-                {["item_name", "category_name", "stock_quantity", "price"].map(
-                  (key) => (
-                    <th
-                      key={key}
-                      onClick={() => handleSort(key as keyof Item)}
-                      style={{ cursor: "pointer", minWidth: "150px" }}
-                    >
-                      {key.replace("_", " ").toUpperCase()}{" "}
-                      <span style={{ display: "inline-block", width: "15px" }}>
-                        {sortConfig?.key === key
-                          ? sortConfig.direction === "asc"
-                            ? "↑"
-                            : "↓"
-                          : " "}
-                      </span>
-                    </th>
-                  )
-                )}
-                <th style={{ minWidth: "100px" }}>Actions</th>
+                {[
+                  "item_name",
+                  "category_name",
+                  "stock_quantity",
+                  "unit_name",
+                  "price",
+                ].map((key) => (
+                  <th
+                    key={key}
+                    onClick={() => handleSort(key as keyof Item)}
+                    style={{ cursor: "pointer", minWidth: "150px" }}
+                  >
+                    {key.replace("_", " ").toUpperCase()}{" "}
+                    <span style={{ display: "inline-block", width: "15px" }}>
+                      {sortConfig?.key === key
+                        ? sortConfig.direction === "asc"
+                          ? "↑"
+                          : "↓"
+                        : " "}
+                    </span>
+                  </th>
+                ))}
+                <th style={{ minWidth: "100px" }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -251,6 +255,7 @@ const SearchItem: React.FC = () => {
                           }
                         />
                       </td>
+                      <td>{item.unit_name}</td>
                       <td>
                         <input
                           type="number"
@@ -290,6 +295,7 @@ const SearchItem: React.FC = () => {
                       <td>{item.item_name}</td>
                       <td>{item.category_name}</td>
                       <td>{item.stock_quantity}</td>
+                      <td>{item.unit_name}</td>
                       <td>${item.price}</td>
                       <td>
                         <div className="d-flex gap-2">
