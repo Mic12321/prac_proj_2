@@ -45,6 +45,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [categoryNameError, setCategoryNameError] = useState<string>("");
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -54,23 +55,35 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
 
   useEffect(() => {
     const loadCategories = async () => {
-      setLoadingCategories(true);
-      const categoryData = await fetchCategories();
-      setCategories(
-        categoryData.map((category) => ({
-          ...category,
-          category_id: category.category_id ?? 0,
-        }))
-      );
+      try {
+        setLoadingCategories(true);
 
-      if (categoryData.length > 0) {
+        const categoryData = await fetchCategories();
+
+        if (categoryData.length === 0) {
+          throw new Error("No categories found.");
+        }
+
+        setCategories(
+          categoryData.map((category) => ({
+            ...category,
+            category_id: category.category_id ?? 0,
+          }))
+        );
+
         setFormData((prevFormData) => ({
           ...prevFormData,
           category_id: categoryData[0].category_id ?? 0,
         }));
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(
+          error.message || "Failed to load categories. Please try again."
+        );
+        setShowToast(true);
+      } finally {
+        setLoadingCategories(false);
       }
-
-      setLoadingCategories(false);
     };
 
     loadCategories();
@@ -106,7 +119,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
     const trimmedCategory = newCategory.trim();
     const trimmedDescription = newCategoryDescription.trim();
 
-    if (!trimmedCategory || !trimmedDescription) return;
+    if (!trimmedCategory) {
+      setCategoryNameError("Category name is required.");
+      return;
+    }
+
+    setCategoryNameError("");
 
     try {
       const existingCategory = categories.find(
@@ -131,8 +149,13 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           });
         }
       }
-    } catch (error) {
-      console.error("Error creating category", error);
+    } catch (error: any) {
+      console.log(error);
+      setToastVariant("danger");
+      setToastMessage(
+        error.message || "Error creating category. Please try again."
+      );
+      setShowToast(true);
     }
 
     setNewCategory("");
@@ -304,9 +327,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
             <Form.Control
               type="text"
               value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
+              onChange={(e) => {
+                setNewCategory(e.target.value);
+                if (e.target.value.trim() !== "") {
+                  setCategoryNameError("");
+                }
+              }}
               placeholder="Enter category name"
             />
+            {categoryNameError && (
+              <div className="text-danger mt-2">{categoryNameError}</div>
+            )}
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Category Description</Form.Label>
@@ -314,7 +345,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
               as="textarea"
               value={newCategoryDescription}
               onChange={(e) => setNewCategoryDescription(e.target.value)}
-              placeholder="Enter category description"
+              placeholder="Enter category description (Optional)"
             />
           </Form.Group>
         </Modal.Body>
