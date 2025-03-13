@@ -10,12 +10,13 @@ export const fetchCategories = async (): Promise<Category[]> => {
   try {
     const response = await fetch(API_ROUTES.CATEGORY);
     if (!response.ok) {
-      throw new Error("Failed to fetch categories");
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch categories");
     }
     return await response.json();
   } catch (error) {
     console.error("Error fetching categories:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -25,7 +26,8 @@ export const fetchCategoryById = async (
   try {
     const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`);
     if (!response.ok) {
-      throw new Error("Category not found");
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Category not found");
     }
     return await response.json();
   } catch (error) {
@@ -45,13 +47,23 @@ export const addCategory = async (
     });
 
     if (!response.ok) {
-      throw new Error("Failed to add category");
+      const errorData = await response.json();
+      console.error(errorData.error);
+      throw new Error(errorData.error || "Failed to add category");
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error adding category:", error);
-    return null;
+
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to add category: Server is unreachable.");
+    }
+
+    throw error;
   }
 };
 

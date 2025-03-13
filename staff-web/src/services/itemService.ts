@@ -42,7 +42,8 @@ export const updateItem = async (id: number, itemData: Item): Promise<Item> => {
   });
 
   if (!response.ok) {
-    throw new Error("Error updating item");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error updating item");
   }
 
   return await response.json();
@@ -52,24 +53,23 @@ export const getAllItems = async (): Promise<Item[]> => {
   const response = await fetch(API_ROUTES.ITEMS);
 
   if (!response.ok) {
-    const text = await response.text();
-    console.error("Error fetching items:", text);
-    throw new Error("Error fetching items: " + text);
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error fetching items");
   }
 
   try {
     const data = await response.json();
     return data;
-  } catch (error) {
-    console.error("Failed to parse JSON:", error);
-    throw new Error("Failed to parse JSON from the server.");
+  } catch (errorData: any) {
+    throw new Error(errorData.error || "Failed to parse JSON from the server.");
   }
 };
 
 export const getItemById = async (id: number): Promise<Item> => {
   const response = await fetch(`${API_ROUTES.ITEMS}/${id}`);
   if (!response.ok) {
-    throw new Error("Error fetching item");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error fetching items");
   }
   return await response.json();
 };
@@ -80,7 +80,8 @@ export const deleteItem = async (id: number): Promise<{ message: string }> => {
   });
 
   if (!response.ok) {
-    throw new Error("Error deleting item");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error deleting item");
   }
 
   return await response.json();
