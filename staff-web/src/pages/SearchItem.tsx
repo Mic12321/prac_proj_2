@@ -9,9 +9,9 @@ const SearchItem: React.FC = () => {
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [toastVariant, setToastVariant] = useState<"success" | "danger">(
-    "success"
-  );
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "danger" | "info"
+  >("success");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
@@ -103,6 +103,12 @@ const SearchItem: React.FC = () => {
 
   const handleSaveItem = async () => {
     if (editedItem) {
+      if (JSON.stringify(editedItem) === JSON.stringify(originalItem)) {
+        setToastVariant("info");
+        setToastMessage("No changes were made to the item.");
+        setShowToast(true);
+        return;
+      }
       try {
         const updatedItems = items.map((item) =>
           item.item_id === editedItem.item_id
