@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Item = require("../models/Item");
 const Category = require("../models/Category");
+const { Op } = require("sequelize");
 
 router.get("/", async (req, res) => {
   try {
@@ -45,6 +46,52 @@ router.post("/", async (req, res) => {
 
     res.json(newItem);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  const {
+    item_name,
+    item_description,
+    stock_quantity,
+    unit_name,
+    price,
+    category_id,
+    for_sale,
+  } = req.body;
+
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    const existingItem = await Item.findOne({
+      where: { item_name, item_id: { [Op.ne]: id } },
+    });
+
+    if (existingItem) {
+      return res
+        .status(400)
+        .json({ error: "Item with this name already exists" });
+    }
+
+    const updatedItem = await item.update({
+      item_name,
+      item_description,
+      stock_quantity,
+      unit_name,
+      price,
+      category_id,
+      for_sale,
+    });
+
+    res.json(updatedItem);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
