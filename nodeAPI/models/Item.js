@@ -33,7 +33,7 @@ const Item = sequelize.define(
     },
     low_stock_quantity: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
+      allowNull: false,
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),

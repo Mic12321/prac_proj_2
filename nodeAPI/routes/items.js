@@ -15,12 +15,30 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    res.json(item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/", async (req, res) => {
   const {
     item_name,
     item_description,
     stock_quantity,
     unit_name,
+    low_stock_quantity,
     price,
     category_id,
     for_sale,
@@ -39,6 +57,7 @@ router.post("/", async (req, res) => {
       item_description,
       stock_quantity,
       unit_name,
+      low_stock_quantity,
       price,
       category_id,
       for_sale,
