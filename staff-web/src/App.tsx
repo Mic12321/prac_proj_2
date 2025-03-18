@@ -14,6 +14,7 @@ import AddItem from "./pages/AddItem";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
+import ItemDetail from "./pages/ItemDetail";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -128,6 +129,15 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<AddItem />}
+              />
+            }
+          />
+          <Route
+            path="/item-detail/:itemId"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<ItemDetail />}
               />
             }
           />

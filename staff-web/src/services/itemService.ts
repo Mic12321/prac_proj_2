@@ -3,14 +3,14 @@ import { API_ROUTES } from "../config/apiConfig";
 export interface Item {
   item_id?: number;
   item_name: string;
-  item_description?: string;
+  item_description: string;
   stock_quantity: number;
-  unit_name?: string;
-  low_stock_quantity?: number;
+  unit_name: string;
+  low_stock_quantity: number;
   price: number;
   category_id: number;
   for_sale: boolean;
-  picture?: File | null;
+  picture: File | null;
   category_name?: string;
 }
 

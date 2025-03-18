@@ -1,38 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { fetchCategories, addCategory } from "../services/categoryService";
-import { addItem } from "../services/itemService";
-import ToastNotification from "../components/ToastNotification";
+import { Item } from "../services/itemService";
 
 interface ItemFormProps {
-  initialData?: {
-    item_name: string;
-    item_description: string;
-    stock_quantity: number;
-    unit_name: string;
-    low_stock_quantity?: number;
-    price: number;
-    category_id: number;
-    for_sale: boolean;
-    picture?: File | null;
-  };
-  onSubmit: (data: any) => void;
+  initialData?: Item;
+  onSubmit: (data: Item) => void;
+  onError: (message: string) => void;
 }
 
-const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
-  const [formData, setFormData] = useState(
-    initialData || {
-      item_name: "",
-      item_description: "",
-      stock_quantity: 0,
-      unit_name: "",
-      low_stock_quantity: 0,
-      price: 0,
-      category_id: 0,
-      for_sale: true,
-      picture: null,
-    }
-  );
+const ItemForm: React.FC<ItemFormProps> = ({
+  initialData,
+  onSubmit,
+  onError,
+}) => {
+  const [formData, setFormData] = useState<Item>({
+    item_name: "",
+    item_description: "",
+    stock_quantity: 0,
+    unit_name: "",
+    low_stock_quantity: 0,
+    price: 0,
+    category_id: 0,
+    for_sale: true,
+    picture: null,
+    ...initialData,
+  });
 
   const [categories, setCategories] = useState<
     {
@@ -41,17 +34,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
       category_description: string;
     }[]
   >([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
-  const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [newCategory, setNewCategory] = useState<string>("");
+  const [newCategoryDescription, setNewCategoryDescription] =
+    useState<string>("");
   const [categoryNameError, setCategoryNameError] = useState<string>("");
-
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastVariant, setToastVariant] = useState<"success" | "danger">(
-    "success"
-  );
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -73,14 +61,13 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
 
         setFormData((prevFormData) => ({
           ...prevFormData,
-          category_id: categoryData[0].category_id ?? 0,
+          category_id:
+            (prevFormData.category_id || categoryData[0].category_id) ?? 0,
         }));
       } catch (error: any) {
-        setToastVariant("danger");
-        setToastMessage(
+        onError(
           error.message || "Failed to load categories. Please try again."
         );
-        setShowToast(true);
       } finally {
         setLoadingCategories(false);
       }
@@ -150,12 +137,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
         }
       }
     } catch (error: any) {
-      console.log(error);
-      setToastVariant("danger");
-      setToastMessage(
-        error.message || "Error creating category. Please try again."
-      );
-      setShowToast(true);
+      onError(error.message || "Failed to add categories. Please try again.");
     }
 
     setNewCategory("");
@@ -174,20 +156,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const result = await addItem(formData);
-
-      setToastMessage("Item added successfully!");
-      setToastVariant("success");
-      setShowToast(true);
-
-      onSubmit(result);
-    } catch (error: any) {
-      setToastMessage(
-        error.message || "An error occurred while adding the item."
-      );
-      setToastVariant("danger");
-      setShowToast(true);
-    }
+      await onSubmit(formData);
+    } catch (error: any) {}
   };
 
   return (
@@ -265,7 +235,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
         <select
           name="category_id"
           className="form-control"
-          value={formData.category_id}
+          value={formData.category_id!}
           onChange={handleCategoryChange}
         >
           {categories.map((category) => (
@@ -358,13 +328,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ initialData, onSubmit }) => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <ToastNotification
-        show={showToast}
-        onClose={() => setShowToast(false)}
-        message={toastMessage}
-        variant={toastVariant}
-        delay={5000}
-      />
     </form>
   );
 };
