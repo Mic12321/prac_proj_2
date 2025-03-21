@@ -8,7 +8,6 @@ import AccountManagement from "./pages/AccountManagement";
 import PendingOrders from "./pages/PendingOrders";
 import Order from "./pages/Order";
 import SearchItem from "./pages/SearchItem";
-import ModifyMenu from "./pages/ModifyMenu";
 import AddItem from "./pages/AddItem";
 
 import Navbar from "./components/Navbar";
@@ -111,15 +110,6 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<SearchItem />}
-              />
-            }
-          />
-          <Route
-            path="/modify-menu"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<ModifyMenu />}
               />
             }
           />

@@ -15,6 +15,18 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/for-sale", async (req, res) => {
+  try {
+    const itemsForSale = await Item.findAll({
+      where: { for_sale: true },
+      include: [{ model: Category }],
+    });
+    res.json(itemsForSale);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 

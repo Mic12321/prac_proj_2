@@ -49,6 +49,16 @@ export const updateItem = async (id: number, itemData: Item): Promise<Item> => {
   return await response.json();
 };
 
+export const getItemsForSale = async (): Promise<Item[]> => {
+  const response = await fetch(`${API_ROUTES.ITEMS}/for-sale`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error fetching items for sale");
+  }
+  return await response.json();
+};
+
 export const getAllItems = async (): Promise<Item[]> => {
   const response = await fetch(API_ROUTES.ITEMS);
 
