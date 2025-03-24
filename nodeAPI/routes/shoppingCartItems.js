@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const ShoppingCartItems = require("../models/ShoppingCartItems");
+const ShoppingCartItem = require("../models/ShoppingCartItem");
 const Item = require("../models/Item");
 
 router.get("/:userId", async (req, res) => {
   try {
-    const cartItems = await ShoppingCartItems.findAll({
+    const cartItems = await ShoppingCartItem.findAll({
       where: { user_id: req.params.userId },
       include: [{ model: Item }],
     });
@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Item is not available for sale" });
     }
 
-    let cartItem = await ShoppingCartItems.findOne({
+    let cartItem = await ShoppingCartItem.findOne({
       where: { user_id, item_id },
     });
 
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
       cartItem.quantity += quantity;
       await cartItem.save();
     } else {
-      cartItem = await ShoppingCartItems.create({ user_id, item_id, quantity });
+      cartItem = await ShoppingCartItem.create({ user_id, item_id, quantity });
     }
 
     res.status(201).json(cartItem);
@@ -51,7 +51,7 @@ router.put("/:userId/:itemId", async (req, res) => {
     const { quantity } = req.body;
     const { userId, itemId } = req.params;
 
-    const cartItem = await ShoppingCartItems.findOne({
+    const cartItem = await ShoppingCartItem.findOne({
       where: { user_id: userId, item_id: itemId },
     });
 
@@ -71,7 +71,7 @@ router.delete("/:userId/:itemId", async (req, res) => {
   try {
     const { userId, itemId } = req.params;
 
-    const deleted = await ShoppingCartItems.destroy({
+    const deleted = await ShoppingCartItem.destroy({
       where: { user_id: userId, item_id: itemId },
     });
 
@@ -89,7 +89,7 @@ router.delete("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    await ShoppingCartItems.destroy({ where: { user_id: userId } });
+    await ShoppingCartItem.destroy({ where: { user_id: userId } });
 
     res.json({ message: "Shopping cart cleared" });
   } catch (error) {

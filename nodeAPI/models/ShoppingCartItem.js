@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
-const ShoppingCartItems = sequelize.define(
-  "ShoppingCartItems",
+const ShoppingCartItem = sequelize.define(
+  "ShoppingCartItem",
   {
     user_id: {
       type: DataTypes.INTEGER,
@@ -21,7 +21,7 @@ const ShoppingCartItems = sequelize.define(
     },
   },
   {
-    tableName: "shopping_cart_items",
+    tableName: "shopping_cart_item",
     timestamps: false,
     indexes: [
       {
@@ -32,4 +32,4 @@ const ShoppingCartItems = sequelize.define(
   }
 );
 
-module.exports = ShoppingCartItems;
+module.exports = ShoppingCartItem;
