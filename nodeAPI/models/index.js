@@ -8,7 +8,7 @@ const Item = require("./Item");
 const PointsRecord = require("./PointsRecord");
 const Ingredient = require("./Ingredient");
 const Category = require("./Category");
-const ShoppingCartItems = require("./ShoppingCartItems");
+const ShoppingCartItem = require("./ShoppingCartItem");
 
 User.hasMany(Orders, { foreignKey: "user_id" });
 Orders.belongsTo(User, { foreignKey: "user_id" });
@@ -25,11 +25,11 @@ Item.belongsTo(Category, { foreignKey: "category_id" });
 User.hasMany(PointsRecord, { foreignKey: "user_id" });
 PointsRecord.belongsTo(User, { foreignKey: "user_id" });
 
-User.hasMany(ShoppingCartItems, { foreignKey: "user_id", onDelete: "CASCADE" });
-ShoppingCartItems.belongsTo(User, { foreignKey: "user_id" });
+User.hasMany(ShoppingCartItem, { foreignKey: "user_id", onDelete: "CASCADE" });
+ShoppingCartItem.belongsTo(User, { foreignKey: "user_id" });
 
-Item.hasMany(ShoppingCartItems, { foreignKey: "item_id", onDelete: "CASCADE" });
-ShoppingCartItems.belongsTo(Item, { foreignKey: "item_id" });
+Item.hasMany(ShoppingCartItem, { foreignKey: "item_id", onDelete: "CASCADE" });
+ShoppingCartItem.belongsTo(Item, { foreignKey: "item_id" });
 
 Item.belongsToMany(Item, {
   through: Ingredient,
@@ -47,5 +47,5 @@ module.exports = {
   PointsRecord,
   Ingredient,
   Category,
-  ShoppingCartItems,
+  ShoppingCartItem,
 };
