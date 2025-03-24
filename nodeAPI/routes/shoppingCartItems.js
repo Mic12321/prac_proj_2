@@ -19,6 +19,16 @@ router.post("/", async (req, res) => {
   try {
     const { user_id, item_id, quantity } = req.body;
 
+    const item = await Item.findOne({ where: { item_id } });
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    if (!item.for_sale) {
+      return res.status(400).json({ error: "Item is not available for sale" });
+    }
+
     let cartItem = await ShoppingCartItems.findOne({
       where: { user_id, item_id },
     });
