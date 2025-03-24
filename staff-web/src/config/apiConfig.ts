@@ -6,4 +6,5 @@ export const API_ROUTES = {
   ORDERS: `${API_BASE}/orders`,
   ITEMS: `${API_BASE}/items`,
   CATEGORY: `${API_BASE}/category`,
+  SHOPPING_CART_ITEMS: `${API_BASE}/shopping-cart-items`,
 };

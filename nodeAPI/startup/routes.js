@@ -13,5 +13,5 @@ module.exports = function (app) {
   app.use("/api/orders", orderRoutes);
   app.use("/api/items", itemRoutes);
   app.use("/api/category", categoryRoutes);
-  app.use("/api/shoppingCartItems", shoppingCartItemsRoutes);
+  app.use("/api/shopping-cart-items", shoppingCartItemsRoutes);
 };
