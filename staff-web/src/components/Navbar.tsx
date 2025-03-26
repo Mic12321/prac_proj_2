@@ -1,14 +1,35 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface NavbarProps {
   setIsAuthenticated: (auth: boolean) => void;
   username: string;
+  setNavbarHeight: (height: number) => void; //
 }
 
-const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated, username }) => {
+const Navbar: React.FC<NavbarProps> = ({
+  setIsAuthenticated,
+  username,
+  setNavbarHeight,
+}) => {
   const navigate = useNavigate();
+  const navbarRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const updateNavbarHeight = () => {
+      if (navbarRef.current) {
+        setNavbarHeight(navbarRef.current.offsetHeight);
+      }
+    };
+
+    updateNavbarHeight();
+    window.addEventListener("resize", updateNavbarHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateNavbarHeight);
+    };
+  }, [setNavbarHeight]);
 
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -16,7 +37,11 @@ const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated, username }) => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav
+      ref={navbarRef}
+      className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"
+      style={{ zIndex: 1050 }}
+    >
       <div className="container d-flex justify-content-between align-items-center">
         <Link className="navbar-brand" to="/home">
           Company Name

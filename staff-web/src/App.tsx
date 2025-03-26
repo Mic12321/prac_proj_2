@@ -18,6 +18,7 @@ import ItemDetail from "./pages/ItemDetail";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(0);
 
   //
   const [username, setUsername] = useState("testUsername");
@@ -25,10 +26,17 @@ function App() {
   return (
     <Router>
       {isAuthenticated && (
-        <Navbar setIsAuthenticated={setIsAuthenticated} username={username} />
+        <Navbar
+          setIsAuthenticated={setIsAuthenticated}
+          username={username}
+          setNavbarHeight={setNavbarHeight}
+        />
       )}
 
-      <div className="container mt-4">
+      <div
+        className="container mt-4"
+        style={{ paddingTop: `${navbarHeight}px` }}
+      >
         <Routes>
           <Route
             path="/"
