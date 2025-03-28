@@ -61,11 +61,11 @@ const Order: React.FC = () => {
     }
   };
 
-  const handleRemove = async (itemId: number) => {
+  const handleRemove = async (itemId: number, removeAll: boolean = false) => {
     try {
-      const newQuantity = Math.max((cart[itemId] || 0) - 1, 0);
+      const currentQuantity = cart[itemId] || 0;
 
-      if (newQuantity === 0) {
+      if (removeAll || currentQuantity <= 1) {
         await removeCartItem(userId, itemId);
         setCart((prev) => {
           const updatedCart = { ...prev };
@@ -73,6 +73,7 @@ const Order: React.FC = () => {
           return updatedCart;
         });
       } else {
+        const newQuantity = currentQuantity - 1;
         await updateCartItem(userId, itemId, newQuantity);
         setCart((prev) => ({ ...prev, [itemId]: newQuantity }));
       }
@@ -89,9 +90,9 @@ const Order: React.FC = () => {
           displayName="<- Back to dashboard page"
         />
       </div>
-      <div className="d-flex">
+      <div className="container d-flex flex-column align-items-center justify-content-center">
+        <h2 className="mb-4 text-center">Orders</h2>
         <div className="flex-grow-1 p-4">
-          <h2 className="mb-4 text-center">Orders</h2>
           {loading ? (
             <p>Loading items...</p>
           ) : error ? (

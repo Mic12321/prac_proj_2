@@ -5,7 +5,7 @@ import tempImg from "../assets/temp_picture.png";
 interface ShoppingCartPanelProps {
   cart: { [key: number]: number };
   onAdd: (itemId: number) => void;
-  onRemove: (itemId: number) => void;
+  onRemove: (itemId: number, removeAll: boolean) => void;
 }
 
 const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
@@ -58,14 +58,14 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
                   style={{ width: "50px", height: "50px" }}
                 />
                 <div>
-                  <p className="mb-1">Item Name</p>
+                  <p className="mb-1">Item name</p>
                   <p className="small text-muted">Qty: {quantity}</p>
                 </div>
               </div>
               <div className="d-flex align-items-center">
                 <button
                   className="btn btn-sm btn-outline-secondary me-1"
-                  onClick={() => onRemove(Number(itemId))}
+                  onClick={() => onRemove(Number(itemId), false)}
                 >
                   -
                 </button>
@@ -89,8 +89,9 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
                 </button>
 
                 <Trash
-                  className="text-danger ms-2 cursor-pointer"
-                  onClick={() => onRemove(Number(itemId))}
+                  className="text-danger ms-2"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => onRemove(Number(itemId), true)}
                 />
               </div>
             </li>
