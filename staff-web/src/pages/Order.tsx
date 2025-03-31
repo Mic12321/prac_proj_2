@@ -113,6 +113,7 @@ const Order: React.FC = () => {
         </div>
         <ShoppingCartPanel
           cart={cart}
+          items={items}
           onAdd={handleAdd}
           onRemove={handleRemove}
         />

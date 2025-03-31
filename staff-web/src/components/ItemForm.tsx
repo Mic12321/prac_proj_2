@@ -84,8 +84,15 @@ const ItemForm: React.FC<ItemFormProps> = ({
     const { name, value, type } = e.target;
     let newValue: any = value;
 
+    console.log(newValue);
+    console.log(type);
+
     if (type === "number") {
       newValue = parseFloat(value);
+      newValue = newValue.toFixed(2);
+      console.log("ho");
+
+      console.log(newValue);
     } else if (name === "for_sale") {
       newValue = value === "true";
     }
