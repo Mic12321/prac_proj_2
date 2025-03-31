@@ -9,12 +9,15 @@ import {
   getShoppingCart,
   addCartItem,
 } from "../services/shoppingCartService";
+import ItemDetailPopup from "../components/ItemDetailPopUp";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [cart, setCart] = useState<{ [key: number]: number }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
 
   //
   const userId = 1;
@@ -82,6 +85,16 @@ const Order: React.FC = () => {
     }
   };
 
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedItem(null);
+  };
+
   return (
     <div>
       <div className="container mt-4">
@@ -101,11 +114,11 @@ const Order: React.FC = () => {
             <div className="row g-3 w-100 text-center">
               {items.map((item) => (
                 <OrderItemDisplay
-                  key={item.item_id}
                   item={item}
                   quantity={cart[item.item_id!] || 0}
                   onAdd={() => handleAdd(item.item_id!)}
                   onRemove={() => handleRemove(item.item_id!)}
+                  onClick={() => handleItemClick(item)} // Pass the onClick handler
                 />
               ))}
             </div>
@@ -118,6 +131,15 @@ const Order: React.FC = () => {
           onRemove={handleRemove}
         />
       </div>
+
+      {showPopup && selectedItem && (
+        <ItemDetailPopup
+          item={selectedItem}
+          onClose={closePopup}
+          onAdd={handleAdd}
+          onRemove={handleRemove}
+        />
+      )}
     </div>
   );
 };
