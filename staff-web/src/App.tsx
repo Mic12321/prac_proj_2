@@ -9,11 +9,13 @@ import PendingOrders from "./pages/PendingOrders";
 import Order from "./pages/Order";
 import SearchItem from "./pages/SearchItem";
 import AddItem from "./pages/AddItem";
+import Checkout from "./pages/Checkout";
+import ItemDetail from "./pages/ItemDetail";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+
 import "./App.css";
-import ItemDetail from "./pages/ItemDetail";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -136,6 +138,15 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<ItemDetail />}
+              />
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<Checkout />}
               />
             }
           />

@@ -13,6 +13,7 @@ interface ShoppingCartPanelProps {
   cart: { [key: number]: number };
   onAdd: (itemId: number) => void;
   onRemove: (itemId: number, removeAll: boolean) => void;
+  onCheckout: () => void;
   items: Item[];
 }
 
@@ -20,6 +21,7 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
   cart,
   onAdd,
   onRemove,
+  onCheckout,
   items,
 }) => {
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -65,7 +67,12 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
         >
           <div className="d-flex justify-content-between align-items-center pb-2 mb-3">
             <h5 className="mb-0">Shopping Cart</h5>
-            <button className="btn btn-sm btn-success">Checkout</button>
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => onCheckout()}
+            >
+              Checkout
+            </button>
           </div>
           <p className=""> Total Items: {totalItems}</p>
           <p className="border-bottom">Subtotal: ${subtotal.toFixed(2)}</p>

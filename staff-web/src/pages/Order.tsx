@@ -10,6 +10,7 @@ import {
   addCartItem,
 } from "../services/shoppingCartService";
 import ItemDetailPopup from "../components/ItemDetailPopUp";
+import { useNavigate } from "react-router";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -18,6 +19,8 @@ const Order: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showPopup, setShowPopup] = useState<boolean>(false);
+
+  const navigate = useNavigate();
 
   //
   const userId = 1;
@@ -95,6 +98,10 @@ const Order: React.FC = () => {
     setSelectedItem(null);
   };
 
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
+
   return (
     <div>
       <div className="container mt-4">
@@ -118,7 +125,7 @@ const Order: React.FC = () => {
                   quantity={cart[item.item_id!] || 0}
                   onAdd={() => handleAdd(item.item_id!)}
                   onRemove={() => handleRemove(item.item_id!)}
-                  onClick={() => handleItemClick(item)} // Pass the onClick handler
+                  onClick={() => handleItemClick(item)}
                 />
               ))}
             </div>
@@ -129,6 +136,7 @@ const Order: React.FC = () => {
           items={items}
           onAdd={handleAdd}
           onRemove={handleRemove}
+          onCheckout={handleCheckout}
         />
       </div>
 
