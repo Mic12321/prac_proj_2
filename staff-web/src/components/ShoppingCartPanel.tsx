@@ -7,7 +7,7 @@ import {
   Minus,
 } from "lucide-react";
 import tempImg from "../assets/temp_picture.png";
-import { Item } from "../services/itemService"; // Ensure correct import
+import { Item } from "../services/itemService";
 
 interface ShoppingCartPanelProps {
   cart: { [key: number]: number };
@@ -26,6 +26,16 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
   const [isOpen, setIsOpen] = useState(true);
 
   const cartPanelWidth = "350";
+
+  const subtotal = Object.entries(cart).reduce((acc, [itemId, quantity]) => {
+    const item = items.find((item) => item.item_id === Number(itemId));
+    return acc + (item ? item.price * quantity : 0);
+  }, 0);
+
+  const totalItems = Object.values(cart).reduce(
+    (acc, quantity) => acc + quantity,
+    0
+  );
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -53,12 +63,23 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
             top: `${navbarHeight}px`,
           }}
         >
-          <h5 className="border-bottom pb-2 mb-3">Shopping Cart</h5>
-
+          <div className="d-flex justify-content-between align-items-center pb-2 mb-3">
+            <h5 className="mb-0">Shopping Cart</h5>
+            <button className="btn btn-sm btn-success">Checkout</button>
+          </div>
+          <p className=""> Total Items: {totalItems}</p>
+          <p className="border-bottom">Subtotal: ${subtotal.toFixed(2)}</p>
           {Object.keys(cart).length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
-            <ul className="list-unstyled">
+            <ul
+              className="list-unstyled"
+              style={{
+                minHeight: "80vh",
+                overflowY: "auto",
+                paddingBottom: "20px",
+              }}
+            >
               {Object.entries(cart).map(([itemId, quantity]) => {
                 const item = items.find(
                   (item) => item.item_id === Number(itemId)
@@ -79,7 +100,7 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
                         className="rounded me-2"
                         style={{ width: "50px", height: "50px", flexShrink: 0 }}
                       />
-                      <div style={{ maxWidth: "125px", overflow: "hidden" }}>
+                      <div style={{ maxWidth: "110px", overflow: "hidden" }}>
                         <p
                           className="mb-1"
                           style={{
@@ -92,6 +113,9 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
                           {item ? item.item_name : "Unknown Item"}
                         </p>
                         <p className="small text-muted mb-0">Qty: {quantity}</p>
+                        <p className="small text-muted mb-0">
+                          Price: ${item?.price}
+                        </p>
                       </div>
                     </div>
 
