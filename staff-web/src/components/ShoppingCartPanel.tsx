@@ -14,6 +14,7 @@ interface ShoppingCartPanelProps {
   onAdd: (itemId: number) => void;
   onRemove: (itemId: number, removeAll: boolean) => void;
   onCheckout: () => void;
+  onClearCart: () => void;
   items: Item[];
 }
 
@@ -22,6 +23,7 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
   onAdd,
   onRemove,
   onCheckout,
+  onClearCart,
   items,
 }) => {
   const [navbarHeight, setNavbarHeight] = useState(0);
@@ -38,6 +40,10 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
     (acc, quantity) => acc + quantity,
     0
   );
+
+  const handleClearCart = () => {
+    onClearCart();
+  };
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -75,16 +81,25 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
             </button>
           </div>
           <p className=""> Total Items: {totalItems}</p>
-          <p className="border-bottom">Subtotal: ${subtotal.toFixed(2)}</p>
+          <div className="d-flex justify-content-between align-items-center border-bottom">
+            <p className="">Subtotal: ${subtotal.toFixed(2)}</p>
+            <button
+              className="btn btn-sm btn-danger mb-3"
+              onClick={handleClearCart}
+            >
+              Clear Cart
+            </button>
+          </div>
+
           {Object.keys(cart).length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
             <ul
               className="list-unstyled"
               style={{
-                minHeight: "80vh",
+                minHeight: "70vh",
                 overflowY: "auto",
-                paddingBottom: "20px",
+                paddingBottom: "40px",
               }}
             >
               {Object.entries(cart).map(([itemId, quantity]) => {

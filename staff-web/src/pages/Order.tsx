@@ -11,6 +11,7 @@ import {
 } from "../services/shoppingCartService";
 import ItemDetailPopup from "../components/ItemDetailPopUp";
 import { useNavigate } from "react-router";
+import { getIngredients, Ingredient } from "../services/ingredientService";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -19,6 +20,7 @@ const Order: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
 
   const navigate = useNavigate();
 
@@ -88,9 +90,31 @@ const Order: React.FC = () => {
     }
   };
 
-  const handleItemClick = (item: Item) => {
+  const handleItemClick = async (item: Item) => {
     setSelectedItem(item);
     setShowPopup(true);
+
+    try {
+      const ingredientData = await getIngredients(item.item_id!);
+      setIngredients(ingredientData);
+    } catch (error) {
+      console.error("Failed to fetch ingredients", error);
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (window.confirm("Are you sure you want to clear the cart?")) {
+      try {
+        await Promise.all(
+          Object.keys(cart).map((itemId) =>
+            removeCartItem(userId, Number(itemId))
+          )
+        );
+        setCart({});
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }
   };
 
   const closePopup = () => {
@@ -137,12 +161,15 @@ const Order: React.FC = () => {
           onAdd={handleAdd}
           onRemove={handleRemove}
           onCheckout={handleCheckout}
+          onClearCart={handleClearCart}
         />
       </div>
 
       {showPopup && selectedItem && (
         <ItemDetailPopup
+          quantity={cart[selectedItem.item_id!] || 0}
           item={selectedItem}
+          ingredients={ingredients}
           onClose={closePopup}
           onAdd={handleAdd}
           onRemove={handleRemove}
