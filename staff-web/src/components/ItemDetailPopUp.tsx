@@ -1,9 +1,12 @@
 import React from "react";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, X } from "lucide-react";
 import { Item } from "../services/itemService";
+import { Ingredient } from "../services/ingredientService";
 
 interface ItemDetailPopupProps {
   item: Item;
+  quantity: number;
+  ingredients: Ingredient[];
   onClose: () => void;
   onAdd: (itemId: number) => void;
   onRemove: (itemId: number) => void;
@@ -11,6 +14,8 @@ interface ItemDetailPopupProps {
 
 const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
   item,
+  quantity,
+  ingredients,
   onClose,
   onAdd,
   onRemove,
@@ -23,15 +28,27 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
       <div className="bg-white p-4 rounded shadow-lg w-75">
         <div className="d-flex justify-content-between align-items-center">
           <h4>{item.item_name}</h4>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={onClose}
-          >
-            Close
+          <button className="btn btn-sm btn-outline-danger" onClick={onClose}>
+            <X />
           </button>
         </div>
 
-        <p className="mt-3">{item.item_description}</p>
+        <p className="mt-3 text-muted">Description: {item.item_description}</p>
+
+        <span className="text-muted">Price: ${item.price}</span>
+
+        <h5 className="text-center mt-4">Ingredients</h5>
+        <ul className="list-group text-center">
+          {ingredients.length > 0 ? (
+            ingredients.map((ing, index) => (
+              <li key={index} className="list-group-item">
+                {ing.quantity} {ing.unit} of {ing.name}
+              </li>
+            ))
+          ) : (
+            <li className="list-group-item">No ingredients listed.</li>
+          )}
+        </ul>
 
         <div className="d-flex align-items-center mt-3">
           <button
@@ -42,7 +59,7 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
           </button>
 
           <span className="d-flex align-items-center justify-content-center px-2">
-            {item.price}
+            {quantity}
           </span>
 
           <button
