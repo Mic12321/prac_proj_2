@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Minus, X } from "lucide-react";
+import { Plus, Minus, X, Trash } from "lucide-react";
 import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
 
@@ -20,6 +20,18 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
   onAdd,
   onRemove,
 }) => {
+  const buttonStyle = {
+    cursor: "pointer",
+  };
+
+  const disabledButtonStyle = {
+    cursor: "not-allowed",
+    backgroundColor: "#e0e0e0",
+    borderColor: "#ccc",
+    color: "#aaa",
+    opacity: 0.6,
+  };
+
   return (
     <div
       className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-opacity-50 bg-dark"
@@ -54,6 +66,8 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
           <button
             className="btn btn-sm btn-outline-danger"
             onClick={() => onRemove(item.item_id!)}
+            disabled={quantity === 0}
+            style={quantity === 0 ? disabledButtonStyle : buttonStyle}
           >
             <Minus />
           </button>
