@@ -50,9 +50,9 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
           )}
         </ul>
 
-        <div className="d-flex align-items-center mt-3">
+        <div className="d-flex justify-content-center align-items-center mt-3">
           <button
-            className="btn btn-sm btn-outline-danger me-2"
+            className="btn btn-sm btn-outline-danger"
             onClick={() => onRemove(item.item_id!)}
           >
             <Minus />
@@ -63,7 +63,7 @@ const ItemDetailPopup: React.FC<ItemDetailPopupProps> = ({
           </span>
 
           <button
-            className="btn btn-sm btn-outline-success ms-2"
+            className="btn btn-sm btn-outline-success"
             onClick={() => onAdd(item.item_id!)}
           >
             <Plus />
