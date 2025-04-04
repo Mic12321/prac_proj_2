@@ -7,14 +7,10 @@ router.get("/:itemId", async (req, res) => {
   try {
     const itemId = req.params.itemId;
 
-    console.log("hi");
-
     const ingredients = await Ingredient.findAll({
       where: { item_to_create_id: itemId },
       include: [{ model: Item, as: "ingredientItem" }],
     });
-
-    console.log("hihii");
 
     res.json(ingredients);
   } catch (error) {
