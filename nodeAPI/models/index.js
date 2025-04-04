@@ -38,6 +38,16 @@ Item.belongsToMany(Item, {
   otherKey: "ingredient_item_id",
 });
 
+Ingredient.belongsTo(Item, {
+  foreignKey: "ingredient_item_id",
+  as: "ingredientItem",
+});
+
+Ingredient.belongsTo(Item, {
+  foreignKey: "item_to_create_id",
+  as: "itemToCreate",
+});
+
 module.exports = {
   sequelize,
   User,
