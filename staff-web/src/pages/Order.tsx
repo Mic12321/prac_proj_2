@@ -136,6 +136,15 @@ const Order: React.FC = () => {
     navigate("/checkout");
   };
 
+  const filteredItems = items.filter(
+    (item) =>
+      selectedCategoryId === null || item.category_id === selectedCategoryId
+  );
+
+  const visibleCategories = categories.filter((category) =>
+    items.some((item) => item.category_id === category.category_id)
+  );
+
   return (
     <div>
       <div className="container mt-4">
@@ -154,7 +163,7 @@ const Order: React.FC = () => {
             selected={selectedCategoryId === null}
           />
 
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <CategoryButton
               key={category.category_id}
               label={category.category_name}
@@ -164,29 +173,25 @@ const Order: React.FC = () => {
             />
           ))}
         </div>
-        <div className="flex-grow-1 p-4">
+        <div className="flex-grow-1 p-4 w-100">
           {loading ? (
             <p>Loading items...</p>
           ) : error ? (
             <p className="text-danger">Error: {error}</p>
+          ) : filteredItems.length === 0 ? (
+            <p className="text-muted text-center">No items available.</p>
           ) : (
             <div className="row g-3 w-100 text-center">
-              {items
-                .filter(
-                  (item) =>
-                    selectedCategoryId === null ||
-                    item.category_id === selectedCategoryId
-                )
-                .map((item) => (
-                  <OrderItemDisplay
-                    key={item.item_id}
-                    item={item}
-                    quantity={cart[item.item_id!] || 0}
-                    onAdd={() => handleAdd(item.item_id!)}
-                    onRemove={() => handleRemove(item.item_id!)}
-                    onClick={() => handleItemClick(item)}
-                  />
-                ))}
+              {filteredItems.map((item) => (
+                <OrderItemDisplay
+                  key={item.item_id}
+                  item={item}
+                  quantity={cart[item.item_id!] || 0}
+                  onAdd={() => handleAdd(item.item_id!)}
+                  onRemove={() => handleRemove(item.item_id!)}
+                  onClick={() => handleItemClick(item)}
+                />
+              ))}
             </div>
           )}
         </div>

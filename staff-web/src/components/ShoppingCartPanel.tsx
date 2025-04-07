@@ -92,7 +92,7 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
           </div>
 
           {Object.keys(cart).length === 0 ? (
-            <p>Your cart is empty</p>
+            <p className="">Your cart is empty</p>
           ) : (
             <ul
               className="list-unstyled"
