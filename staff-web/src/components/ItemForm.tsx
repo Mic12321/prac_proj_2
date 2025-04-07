@@ -7,12 +7,14 @@ interface ItemFormProps {
   initialData?: Item;
   onSubmit: (data: Item) => void;
   onError: (message: string) => void;
+  onDelete?: (id: number) => void;
 }
 
 const ItemForm: React.FC<ItemFormProps> = ({
   initialData,
   onSubmit,
   onError,
+  onDelete,
 }) => {
   const [formData, setFormData] = useState<Item>({
     item_name: "",
@@ -293,6 +295,15 @@ const ItemForm: React.FC<ItemFormProps> = ({
       <button type="submit" className="btn btn-primary">
         Save Item
       </button>
+      {initialData && onDelete && (
+        <button
+          type="button"
+          className="btn btn-danger ms-2"
+          onClick={() => onDelete(initialData.item_id!)}
+        >
+          Delete Item
+        </button>
+      )}
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>

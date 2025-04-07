@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import ItemForm from "../components/ItemForm";
 import NavigateButton from "../components/NavigateButton";
-import { getItemById, Item, updateItem } from "../services/itemService";
+import {
+  getItemById,
+  Item,
+  updateItem,
+  deleteItem,
+} from "../services/itemService";
 import ToastNotification from "../components/ToastNotification";
 
 const ItemDetail: React.FC = () => {
@@ -60,6 +65,22 @@ const ItemDetail: React.FC = () => {
     setShowToast(true);
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteItem(id);
+
+      setToastMessage("Item deleted successfully!");
+      setToastVariant("success");
+      setShowToast(true);
+      sessionStorage.setItem("successMessage", "Item deleted successfully!");
+      navigate("/search-item");
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Error deleting item.");
+      setShowToast(true);
+    }
+  };
+
   return (
     <div className="container mt-4">
       <NavigateButton
@@ -73,6 +94,7 @@ const ItemDetail: React.FC = () => {
           initialData={item}
           onSubmit={handleSubmit}
           onError={handleError}
+          onDelete={handleDelete}
         />
       )}
       <ToastNotification

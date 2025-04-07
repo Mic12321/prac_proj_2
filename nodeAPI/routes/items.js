@@ -127,4 +127,22 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    await item.destroy();
+    res.json({ message: "Item deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
