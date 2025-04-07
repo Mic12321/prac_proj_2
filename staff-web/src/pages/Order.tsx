@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import OrderItemDisplay from "../components/OrderItemDisplay";
 import { getItemsForSale, Item } from "../services/itemService";
+import { fetchCategories, Category } from "../services/categoryService";
+import { getIngredients, Ingredient } from "../services/ingredientService";
 import ShoppingCartPanel from "../components/ShoppingCartPanel";
 import NavigateButton from "../components/NavigateButton";
+import CategoryButton from "../components/CategoryButton";
 import {
   updateCartItem,
   removeCartItem,
@@ -11,7 +14,6 @@ import {
 } from "../services/shoppingCartService";
 import ItemDetailPopup from "../components/ItemDetailPopUp";
 import { useNavigate } from "react-router";
-import { getIngredients, Ingredient } from "../services/ingredientService";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -21,6 +23,11 @@ const Order: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
 
   const navigate = useNavigate();
 
@@ -34,12 +41,15 @@ const Order: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [itemsData, cartData] = await Promise.all([
+      const [itemsData, cartData, categoryData] = await Promise.all([
         getItemsForSale(),
         getShoppingCart(userId),
+        fetchCategories(),
       ]);
 
       setItems(itemsData);
+      setCategories(categoryData);
+
       setCart(
         cartData.reduce(
           (acc, item) => ({ ...acc, [item.item_id]: Number(item.quantity) }),
@@ -136,6 +146,24 @@ const Order: React.FC = () => {
       </div>
       <div className="container d-flex flex-column align-items-center justify-content-center">
         <h2 className="mb-4 text-center">Orders</h2>
+        <div className="row mb-4 w-100">
+          <CategoryButton
+            label="All Items"
+            displayName="All Items"
+            onClick={() => setSelectedCategoryId(null)}
+            selected={selectedCategoryId === null}
+          />
+
+          {categories.map((category) => (
+            <CategoryButton
+              key={category.category_id}
+              label={category.category_name}
+              displayName={category.category_name}
+              onClick={() => setSelectedCategoryId(category.category_id!)}
+              selected={selectedCategoryId === category.category_id}
+            />
+          ))}
+        </div>
         <div className="flex-grow-1 p-4">
           {loading ? (
             <p>Loading items...</p>
@@ -143,15 +171,22 @@ const Order: React.FC = () => {
             <p className="text-danger">Error: {error}</p>
           ) : (
             <div className="row g-3 w-100 text-center">
-              {items.map((item) => (
-                <OrderItemDisplay
-                  item={item}
-                  quantity={cart[item.item_id!] || 0}
-                  onAdd={() => handleAdd(item.item_id!)}
-                  onRemove={() => handleRemove(item.item_id!)}
-                  onClick={() => handleItemClick(item)}
-                />
-              ))}
+              {items
+                .filter(
+                  (item) =>
+                    selectedCategoryId === null ||
+                    item.category_id === selectedCategoryId
+                )
+                .map((item) => (
+                  <OrderItemDisplay
+                    key={item.item_id}
+                    item={item}
+                    quantity={cart[item.item_id!] || 0}
+                    onAdd={() => handleAdd(item.item_id!)}
+                    onRemove={() => handleRemove(item.item_id!)}
+                    onClick={() => handleItemClick(item)}
+                  />
+                ))}
             </div>
           )}
         </div>
