@@ -14,6 +14,7 @@ import {
 } from "../services/shoppingCartService";
 import ItemDetailPopup from "../components/ItemDetailPopUp";
 import { useNavigate } from "react-router";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -28,6 +29,8 @@ const Order: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
+
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const navigate = useNavigate();
 
@@ -112,19 +115,22 @@ const Order: React.FC = () => {
     }
   };
 
+  const handleClearCancel = () => {
+    setShowConfirmDialog(false);
+  };
+
   const handleClearCart = async () => {
-    if (window.confirm("Are you sure you want to clear the cart?")) {
-      try {
-        await Promise.all(
-          Object.keys(cart).map((itemId) =>
-            removeCartItem(userId, Number(itemId))
-          )
-        );
-        setCart({});
-      } catch (err: any) {
-        setError(err.message);
-      }
+    try {
+      await Promise.all(
+        Object.keys(cart).map((itemId) =>
+          removeCartItem(userId, Number(itemId))
+        )
+      );
+      setCart({});
+    } catch (err: any) {
+      setError(err.message);
     }
+    setShowConfirmDialog(false);
   };
 
   const closePopup = () => {
@@ -201,7 +207,7 @@ const Order: React.FC = () => {
           onAdd={handleAdd}
           onRemove={handleRemove}
           onCheckout={handleCheckout}
-          onClearCart={handleClearCart}
+          onClearCart={() => setShowConfirmDialog(true)}
         />
       </div>
 
@@ -215,6 +221,18 @@ const Order: React.FC = () => {
           onRemove={handleRemove}
         />
       )}
+
+      <ConfirmationModal
+        show={showConfirmDialog}
+        onHide={handleClearCancel}
+        onConfirm={handleClearCart}
+        title="Clear All Items In Cart"
+        message="Are you sure you want to clear all items in cart?"
+        cancelButtonLabel="No, Cancel"
+        confirmButtonLabel="Yes, Clear"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-danger"
+      />
     </div>
   );
 };
