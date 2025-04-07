@@ -9,6 +9,7 @@ import {
   deleteItem,
 } from "../services/itemService";
 import ToastNotification from "../components/ToastNotification";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ItemDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,9 @@ const ItemDetail: React.FC = () => {
   const [toastVariant, setToastVariant] = useState<"success" | "danger">(
     "success"
   );
+
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -65,20 +69,37 @@ const ItemDetail: React.FC = () => {
     setShowToast(true);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteItem(id);
+  const handleDeleteClick = (id: number) => {
+    setItemToDelete(id);
+    setShowConfirmDialog(true);
+  };
 
-      setToastMessage("Item deleted successfully!");
-      setToastVariant("success");
-      setShowToast(true);
-      sessionStorage.setItem("successMessage", "Item deleted successfully!");
-      navigate("/search-item");
-    } catch (error: any) {
-      setToastVariant("danger");
-      setToastMessage(error.message || "Error deleting item.");
-      setShowToast(true);
+  const handleDeleteConfirm = async () => {
+    if (itemToDelete !== null) {
+      try {
+        await deleteItem(itemToDelete);
+
+        setToastMessage("Item deleted successfully!");
+        setToastVariant("success");
+        setShowToast(true);
+
+        sessionStorage.setItem("successMessage", "Item deleted successfully!");
+
+        navigate("/search-item");
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(error.message || "Error deleting item.");
+        setShowToast(true);
+      }
     }
+
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -94,9 +115,22 @@ const ItemDetail: React.FC = () => {
           initialData={item}
           onSubmit={handleSubmit}
           onError={handleError}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
         />
       )}
+
+      <ConfirmationModal
+        show={showConfirmDialog}
+        onHide={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Item"
+        message="Are you sure you want to delete this item?"
+        cancelButtonLabel="No, Cancel"
+        confirmButtonLabel="Yes, Delete"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-danger"
+      />
+
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
