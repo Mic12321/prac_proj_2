@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { fetchCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
+import { Ingredient } from "../services/ingredientService";
 
 interface ItemFormProps {
   initialData?: Item;
   onSubmit: (data: Item) => void;
   onError: (message: string) => void;
   onDelete?: (id: number) => void;
+  itemIngredients?: Ingredient[];
+  itemIngredientsUsedIn?: Ingredient[];
 }
 
 const ItemForm: React.FC<ItemFormProps> = ({
@@ -15,6 +18,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
   onSubmit,
   onError,
   onDelete,
+  itemIngredients = [],
+  itemIngredientsUsedIn = [],
 }) => {
   const [formData, setFormData] = useState<Item>({
     item_name: "",
@@ -290,6 +295,35 @@ const ItemForm: React.FC<ItemFormProps> = ({
           className="form-control"
           onChange={handleFileChange}
         />
+      </div>
+      <div className="mt-4">
+        <h4>Item Ingredients</h4>
+        {itemIngredients.length > 0 ? (
+          <ul>
+            {itemIngredients.map((itemIngredients, index) => (
+              <li key={index}>
+                {itemIngredients.name} - {itemIngredients.quantity}{" "}
+                {itemIngredients.unit}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No ingredients available for this item.</p>
+        )}
+      </div>
+      <div className="mt-4">
+        <h4 className="mt-4">Items Using This Ingredient</h4>
+        {itemIngredientsUsedIn.length > 0 ? (
+          <ul>
+            {itemIngredientsUsedIn.map((ingredients) => (
+              <li key={ingredients.id}>
+                {ingredients.name} - {ingredients.quantity} {ingredients.unit}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No items used this ingredient.</p>
+        )}
       </div>
 
       <button type="submit" className="btn btn-primary">

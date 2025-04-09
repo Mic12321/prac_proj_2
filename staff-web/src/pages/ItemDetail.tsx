@@ -10,11 +10,20 @@ import {
 } from "../services/itemService";
 import ToastNotification from "../components/ToastNotification";
 import ConfirmationModal from "../components/ConfirmationModal";
+import {
+  getIngredients,
+  getIngredientsUsedIn,
+  Ingredient,
+} from "../services/ingredientService";
 
 const ItemDetail: React.FC = () => {
   const navigate = useNavigate();
   const { itemId } = useParams();
   const [item, setItem] = useState<Item>();
+  const [itemIngredients, setItemIngredients] = useState<Ingredient[]>([]);
+  const [itemIngredientsUsedIn, setItemIngredientsUsedIn] = useState<
+    Ingredient[]
+  >([]);
 
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -39,8 +48,44 @@ const ItemDetail: React.FC = () => {
       }
     };
 
+    const fetchItemIngredients = async () => {
+      try {
+        if (itemId) {
+          const fetchedItemIngredients = await getIngredients(Number(itemId));
+          setItemIngredients(fetchedItemIngredients || []);
+        }
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(
+          error.message ||
+            "An error occurred while fetching the item ingredients."
+        );
+        setShowToast(true);
+      }
+    };
+
+    const fetchIngredientsUsedIn = async () => {
+      try {
+        if (itemId) {
+          const fetchedIngredientsUsedIn = await getIngredientsUsedIn(
+            Number(itemId)
+          );
+          setItemIngredientsUsedIn(fetchedIngredientsUsedIn || []);
+        }
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(
+          error.message ||
+            "An error occurred while fetching ingredients used in."
+        );
+        setShowToast(true);
+      }
+    };
+
     if (itemId) {
       fetchItem();
+      fetchItemIngredients();
+      fetchIngredientsUsedIn();
     }
   }, [itemId]);
 
@@ -116,6 +161,8 @@ const ItemDetail: React.FC = () => {
           onSubmit={handleSubmit}
           onError={handleError}
           onDelete={handleDeleteClick}
+          itemIngredients={itemIngredients}
+          itemIngredientsUsedIn={itemIngredientsUsedIn}
         />
       )}
 
