@@ -3,6 +3,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { fetchCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
+import IngredientList from "./IngredientList";
 
 interface ItemFormProps {
   initialData?: Item;
@@ -299,29 +300,31 @@ const ItemForm: React.FC<ItemFormProps> = ({
       <div className="mt-4">
         <h4>Item Ingredients</h4>
         {itemIngredients.length > 0 ? (
-          <ul>
-            {itemIngredients.map((itemIngredients, index) => (
-              <li key={index}>
-                {itemIngredients.name} - {itemIngredients.quantity}{" "}
-                {itemIngredients.unit}
-              </li>
-            ))}
-          </ul>
+          <IngredientList ingredients={itemIngredients} />
         ) : (
+          // <ul>
+          //   {itemIngredients.map((itemIngredients, index) => (
+          //     <li key={index}>
+          //       {itemIngredients.name} - {itemIngredients.quantity}{" "}
+          //       {itemIngredients.unit}
+          //     </li>
+          //   ))}
+          // </ul>
           <p>No ingredients available for this item.</p>
         )}
       </div>
       <div className="mt-4">
         <h4 className="mt-4">Items Using This Ingredient</h4>
         {itemIngredientsUsedIn.length > 0 ? (
-          <ul>
-            {itemIngredientsUsedIn.map((ingredients) => (
-              <li key={ingredients.id}>
-                {ingredients.name} - {ingredients.quantity} {ingredients.unit}
-              </li>
-            ))}
-          </ul>
+          <IngredientList ingredients={itemIngredientsUsedIn} />
         ) : (
+          // <ul>
+          //   {itemIngredientsUsedIn.map((ingredients) => (
+          //     <li key={ingredients.id}>
+          //       {ingredients.name} - {ingredients.quantity} {ingredients.unit}
+          //     </li>
+          //   ))}
+          // </ul>
           <p>No items used this ingredient.</p>
         )}
       </div>
