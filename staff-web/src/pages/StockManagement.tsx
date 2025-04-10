@@ -22,6 +22,18 @@ const StockManagement: React.FC = () => {
             displayName="Search & Edit Items"
             route="/search-item"
           />
+          <DashboardButton
+            image={tempImg}
+            label="Category Management Button"
+            displayName="Category Management"
+            route="/stock-management"
+          />
+          <DashboardButton
+            image={tempImg}
+            label="Create Stock Order Button"
+            displayName="Stock Order Management"
+            route="/stock-management"
+          />
         </div>
       </div>
     </div>
