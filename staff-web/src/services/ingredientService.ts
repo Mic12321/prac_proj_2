@@ -4,7 +4,7 @@ export interface Ingredient {
   id: number;
   name: string;
   quantity: number;
-  unit: string;
+  unit_name: string;
 }
 
 export const getIngredients = async (itemId: number) => {
@@ -22,7 +22,7 @@ export const getIngredients = async (itemId: number) => {
       id: ingredient.id,
       name: ingredient.ingredientItem.item_name,
       quantity: ingredient.quantity,
-      unit: ingredient.ingredientItem.unit_name,
+      unit_name: ingredient.ingredientItem.unit_name,
     }));
   } catch (error) {
     console.error("Error fetching ingredients:", error);
@@ -45,7 +45,7 @@ export const getIngredientsUsedIn = async (itemId: number) => {
       id: ingredient.id,
       name: ingredient.itemToCreate.item_name,
       quantity: ingredient.quantity,
-      unit: ingredient.itemToCreate.unit_name,
+      unit_name: ingredient.itemToCreate.unit_name,
     }));
   } catch (error) {
     console.error("Error fetching ingredients used in:", error);

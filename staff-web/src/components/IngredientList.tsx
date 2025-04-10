@@ -21,7 +21,7 @@ const IngredientList: React.FC<IngredientListProps> = ({ ingredients }) => {
             <tr key={index}>
               <td>{ingredient.name}</td>
               <td>{ingredient.quantity}</td>
-              <td>{ingredient.unit}</td>
+              <td>{ingredient.unit_name}</td>
             </tr>
           ))}
         </tbody>
