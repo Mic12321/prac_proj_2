@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { getAllItems, updateItem, Item } from "../services/itemService";
 import { fetchCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
+import CategoryFilterDropdown from "../components/CategoryFilterDropdown";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const SearchItem: React.FC = () => {
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Item;
     direction: string;
@@ -65,17 +67,23 @@ const SearchItem: React.FC = () => {
       sessionStorage.removeItem("successMessage");
     }
 
-    setFilteredItems(
-      items.filter(
-        (item) =>
-          item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.item_description
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          item.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-  }, [searchQuery, items]);
+    const filtered = items.filter((item) => {
+      const matchesSearch =
+        item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.item_description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        item.category_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.includes(item.category_id!);
+
+      return matchesSearch && matchesCategory;
+    });
+
+    setFilteredItems(filtered);
+  }, [searchQuery, items, selectedCategories]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -167,6 +175,12 @@ const SearchItem: React.FC = () => {
     setSortConfig({ key, direction });
   };
 
+  const filteredCategories = useMemo(() => {
+    return categories.filter((category) =>
+      items.some((item) => item.category_id === category.category_id)
+    );
+  }, [categories, items]);
+
   return (
     <div className="container mt-4">
       <NavigateButton
@@ -189,6 +203,12 @@ const SearchItem: React.FC = () => {
         >
           Add New Item
         </button>
+
+        <CategoryFilterDropdown
+          categories={filteredCategories}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+        />
       </div>
 
       <div>

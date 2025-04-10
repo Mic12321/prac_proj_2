@@ -302,14 +302,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
         {itemIngredients.length > 0 ? (
           <IngredientList ingredients={itemIngredients} />
         ) : (
-          // <ul>
-          //   {itemIngredients.map((itemIngredients, index) => (
-          //     <li key={index}>
-          //       {itemIngredients.name} - {itemIngredients.quantity}{" "}
-          //       {itemIngredients.unit}
-          //     </li>
-          //   ))}
-          // </ul>
           <p>No ingredients available for this item.</p>
         )}
       </div>
@@ -318,13 +310,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
         {itemIngredientsUsedIn.length > 0 ? (
           <IngredientList ingredients={itemIngredientsUsedIn} />
         ) : (
-          // <ul>
-          //   {itemIngredientsUsedIn.map((ingredients) => (
-          //     <li key={ingredients.id}>
-          //       {ingredients.name} - {ingredients.quantity} {ingredients.unit}
-          //     </li>
-          //   ))}
-          // </ul>
           <p>No items used this ingredient.</p>
         )}
       </div>
