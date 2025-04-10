@@ -25,6 +25,8 @@ const SearchItem: React.FC = () => {
   } | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
 
+  const customClassCategoryFilterDropdown = "ms-2";
+
   const fetchData = useCallback(async () => {
     try {
       const [categoriesData, itemsData] = await Promise.all([
@@ -208,6 +210,7 @@ const SearchItem: React.FC = () => {
           categories={filteredCategories}
           selectedCategories={selectedCategories}
           setSelectedCategories={setSelectedCategories}
+          className={customClassCategoryFilterDropdown}
         />
       </div>
 

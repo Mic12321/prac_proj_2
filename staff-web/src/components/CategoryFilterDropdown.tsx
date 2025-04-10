@@ -6,12 +6,14 @@ interface Props {
   categories: Category[];
   selectedCategories: number[];
   setSelectedCategories: React.Dispatch<React.SetStateAction<number[]>>;
+  className?: string;
 }
 
 const CategoryFilterDropdown: React.FC<Props> = ({
   categories,
   selectedCategories,
   setSelectedCategories,
+  className = "position-relative",
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -34,7 +36,7 @@ const CategoryFilterDropdown: React.FC<Props> = ({
   };
 
   return (
-    <div className="position-relative">
+    <div className={`position-relative ${className}`}>
       <button
         className="btn btn-outline-primary d-flex align-items-center"
         onClick={handleToggle}
