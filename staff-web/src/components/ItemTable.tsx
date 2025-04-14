@@ -11,6 +11,7 @@ interface ItemTableProps {
   onSort: (key: keyof Item) => void;
   setEditedItem: React.Dispatch<React.SetStateAction<Item | null>>;
   navigateToDetail: (id: number) => void;
+  isEditing: boolean;
 }
 
 const ItemTable: React.FC<ItemTableProps> = ({
@@ -23,6 +24,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
   onSort,
   setEditedItem,
   navigateToDetail,
+  isEditing,
 }) => {
   if (items.length === 0) return <p>No items found.</p>;
 
@@ -134,18 +136,29 @@ const ItemTable: React.FC<ItemTableProps> = ({
                 <td>${item.price}</td>
                 <td>
                   <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => onEditItem(item)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => navigateToDetail(item.item_id!)}
-                    >
-                      View Details
-                    </button>
+                    {isEditing ? (
+                      <>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => onEditItem(item)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => navigateToDetail(item.item_id!)}
+                        >
+                          View Details
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => navigateToDetail(item.item_id!)}
+                      >
+                        View Details
+                      </button>
+                    )}
                   </div>
                 </td>
               </>

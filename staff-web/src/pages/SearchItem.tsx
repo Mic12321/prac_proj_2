@@ -4,7 +4,6 @@ import { getAllItems, updateItem, Item } from "../services/itemService";
 import { fetchCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
-import CategoryFilterDropdown from "../components/CategoryFilterDropdown";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
 
@@ -26,6 +25,8 @@ const SearchItem: React.FC = () => {
     direction: string;
   } | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
+
+  const [isEditing, setIsEditing] = useState(true);
 
   const customClassCategoryFilterDropdown = "ms-2";
 
@@ -101,7 +102,6 @@ const SearchItem: React.FC = () => {
         const userConfirmed = window.confirm(
           "You have unsaved changes. Do you want to discard them?"
         );
-
         if (!userConfirmed) {
           return;
         }
@@ -145,7 +145,7 @@ const SearchItem: React.FC = () => {
     }
   };
 
-  const handleCacnelEdit = () => {
+  const handleCancelEdit = () => {
     if (originalItem) {
       setItems((prevItems) =>
         prevItems.map((item) =>
@@ -153,7 +153,6 @@ const SearchItem: React.FC = () => {
         )
       );
     }
-
     setEditedItem(null);
     setOriginalItem(null);
   };
@@ -207,10 +206,11 @@ const SearchItem: React.FC = () => {
         sortConfig={sortConfig}
         onEditItem={handleEditItem}
         onSaveItem={handleSaveItem}
-        onCancelEdit={handleCacnelEdit}
+        onCancelEdit={handleCancelEdit}
         onSort={handleSort}
         setEditedItem={setEditedItem}
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
+        isEditing={isEditing} // Always pass isEditing as true
       />
       <ToastNotification
         show={showToast}
