@@ -12,6 +12,7 @@ interface ItemTableProps {
   setEditedItem: React.Dispatch<React.SetStateAction<Item | null>>;
   navigateToDetail: (id: number) => void;
   isEditing: boolean;
+  onSelectItem: (item: Item) => void;
 }
 
 const ItemTable: React.FC<ItemTableProps> = ({
@@ -25,6 +26,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
   setEditedItem,
   navigateToDetail,
   isEditing,
+  onSelectItem,
 }) => {
   if (items.length === 0) return <p>No items found.</p>;
 
@@ -152,12 +154,20 @@ const ItemTable: React.FC<ItemTableProps> = ({
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => navigateToDetail(item.item_id!)}
-                      >
-                        View Details
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => onSelectItem(item)}
+                        >
+                          Select
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => navigateToDetail(item.item_id!)}
+                        >
+                          View Details
+                        </button>
+                      </>
                     )}
                   </div>
                 </td>

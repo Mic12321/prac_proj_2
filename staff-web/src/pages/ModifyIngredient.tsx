@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { getAllItems, updateItem, Item } from "../services/itemService";
+import { getAllItems, Item } from "../services/itemService";
 import { fetchCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
 
-const SearchItem: React.FC = () => {
+const ModifyIngredient: React.FC = () => {
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -17,18 +17,13 @@ const SearchItem: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-  const [editedItem, setEditedItem] = useState<Item | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Item;
     direction: string;
   } | null>(null);
-  const [originalItem, setOriginalItem] = useState<Item | null>(null);
-
-  const [isEditing, setIsEditing] = useState(true);
-
-  const customClassCategoryFilterDropdown = "ms-2";
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -65,14 +60,6 @@ const SearchItem: React.FC = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    const message = sessionStorage.getItem("successMessage");
-    if (message) {
-      setToastVariant("success");
-      setToastMessage(message);
-      setShowToast(true);
-      sessionStorage.removeItem("successMessage");
-    }
-
     const filtered = items.filter((item) => {
       const matchesSearch =
         item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -93,68 +80,24 @@ const SearchItem: React.FC = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleEditItem = (item: Item) => {
-    if (editedItem && editedItem.item_id !== item.item_id) {
-      if (
-        originalItem &&
-        JSON.stringify(editedItem) !== JSON.stringify(originalItem)
-      ) {
-        const userConfirmed = window.confirm(
-          "You have unsaved changes. Do you want to discard them?"
-        );
-        if (!userConfirmed) {
-          return;
-        }
-      }
-    }
-
-    setOriginalItem({ ...item });
-    setEditedItem(item);
+  const handleSelectItem = (item: Item) => {
+    setSelectedItem(item);
+    setToastVariant("info");
+    setToastMessage(`You selected: ${item.item_name}`);
+    setShowToast(true);
   };
 
-  const handleSaveItem = async () => {
-    if (editedItem) {
-      if (JSON.stringify(editedItem) === JSON.stringify(originalItem)) {
-        setToastVariant("info");
-        setToastMessage("No changes were made to the item.");
-        setShowToast(true);
-        return;
-      }
-      try {
-        const updatedItems = items.map((item) =>
-          item.item_id === editedItem.item_id
-            ? { ...item, ...editedItem }
-            : item
-        );
-        setItems(updatedItems);
-        setFilteredItems(updatedItems);
-
-        const updatedItem = await updateItem(editedItem.item_id!, editedItem);
-
-        setEditedItem(null);
-        setToastVariant("success");
-        setToastMessage("Item updated successfully!");
-        setShowToast(true);
-      } catch (error: any) {
-        setToastVariant("danger");
-        setToastMessage(
-          error.message || "Failed to update item. Please try again."
-        );
-        setShowToast(true);
-      }
+  const handleSaveSelection = () => {
+    if (!selectedItem) {
+      setToastVariant("danger");
+      setToastMessage("No item selected.");
+      setShowToast(true);
+      return;
     }
-  };
 
-  const handleCancelEdit = () => {
-    if (originalItem) {
-      setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.item_id === originalItem.item_id ? originalItem : item
-        )
-      );
-    }
-    setEditedItem(null);
-    setOriginalItem(null);
+    setToastVariant("success");
+    setToastMessage(`Ingredient ${selectedItem.item_name} added successfully.`);
+    setShowToast(true);
   };
 
   const handleSort = (key: keyof Item) => {
@@ -189,7 +132,7 @@ const SearchItem: React.FC = () => {
         navUrl="/stock-management"
         displayName="<- Back to stock management page"
       />
-      <h1>Search and Edit Items</h1>
+      <h1>Select an Item to Add as Ingredient</h1>
 
       <ItemSearchBar
         searchQuery={searchQuery}
@@ -200,19 +143,32 @@ const SearchItem: React.FC = () => {
         setSelectedCategories={setSelectedCategories}
       />
 
+      {selectedItem && (
+        <div className="alert alert-info mt-3">
+          <strong>Selected Item: </strong> {selectedItem.item_name}
+        </div>
+      )}
+
       <ItemTable
         items={filteredItems}
-        editedItem={editedItem}
+        editedItem={null}
         sortConfig={sortConfig}
-        onEditItem={handleEditItem}
-        onSaveItem={handleSaveItem}
-        onCancelEdit={handleCancelEdit}
+        onEditItem={() => {}}
+        onSaveItem={() => {}}
+        onCancelEdit={() => {}}
         onSort={handleSort}
-        setEditedItem={setEditedItem}
+        setEditedItem={() => {}}
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
-        isEditing={isEditing}
-        onSelectItem={() => {}}
+        isEditing={false}
+        onSelectItem={handleSelectItem}
       />
+
+      <div className="mt-3">
+        <button className="btn btn-success" onClick={handleSaveSelection}>
+          Save Selection
+        </button>
+      </div>
+
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
@@ -224,4 +180,4 @@ const SearchItem: React.FC = () => {
   );
 };
 
-export default SearchItem;
+export default ModifyIngredient;

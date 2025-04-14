@@ -4,6 +4,7 @@ import { fetchCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
 import IngredientList from "./IngredientList";
+import { useNavigate } from "react-router";
 
 interface ItemFormProps {
   initialData?: Item;
@@ -48,6 +49,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [newCategoryDescription, setNewCategoryDescription] =
     useState<string>("");
   const [categoryNameError, setCategoryNameError] = useState<string>("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -173,6 +176,18 @@ const ItemForm: React.FC<ItemFormProps> = ({
     try {
       await onSubmit(formData);
     } catch (error: any) {}
+  };
+
+  const handleToModifyIngredientForItem = () => {
+    console.log("handleToModifyIngredientForItem");
+
+    navigate("/modify-ingredient");
+  };
+
+  const handleToModifyIngredientForItemUsingThisIngredient = () => {
+    console.log("handleToModifyIngredientForItemUsingThisIngredient");
+
+    navigate("/modify-ingredient");
   };
 
   return (
@@ -304,6 +319,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
         ) : (
           <p>No ingredients available for this item.</p>
         )}
+        <button
+          type="button"
+          className="btn btn-info mt-3"
+          onClick={handleToModifyIngredientForItem}
+        >
+          Modify Ingredient
+        </button>
       </div>
       <div className="mt-4">
         <h4 className="mt-4">Items Using This Ingredient</h4>
@@ -312,7 +334,16 @@ const ItemForm: React.FC<ItemFormProps> = ({
         ) : (
           <p>No items used this ingredient.</p>
         )}
+        <button
+          type="button"
+          className="btn btn-info mt-3"
+          onClick={handleToModifyIngredientForItemUsingThisIngredient}
+        >
+          Modify Ingredient
+        </button>
       </div>
+
+      <div className="border-top my-3"></div>
 
       <button type="submit" className="btn btn-primary">
         Save Item

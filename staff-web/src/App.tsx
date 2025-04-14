@@ -11,6 +11,7 @@ import SearchItem from "./pages/SearchItem";
 import AddItem from "./pages/AddItem";
 import Checkout from "./pages/Checkout";
 import ItemDetail from "./pages/ItemDetail";
+import ModifyIngredient from "./pages/ModifyIngredient";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -147,6 +148,15 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<Checkout />}
+              />
+            }
+          />
+          <Route
+            path="/modify-ingredient"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<ModifyIngredient />}
               />
             }
           />
