@@ -17,10 +17,14 @@ const CategoryFilterDropdown: React.FC<Props> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const isAllSelected =
+    categories.length > 0 &&
+    categories.every((cat) => selectedCategories.includes(cat.category_id!));
+
   const handleToggle = () => setIsOpen(!isOpen);
 
   const handleSelectAll = () => {
-    if (selectedCategories.length === categories.length) {
+    if (isAllSelected) {
       setSelectedCategories([]);
     } else {
       setSelectedCategories(categories.map((c) => c.category_id!));
@@ -63,7 +67,7 @@ const CategoryFilterDropdown: React.FC<Props> = ({
             onClick={handleSelectAll}
             style={{ cursor: "pointer" }}
           >
-            {selectedCategories.length === categories.length ? (
+            {isAllSelected ? (
               <CheckSquare size={16} className="me-2" />
             ) : (
               <Square size={16} className="me-2" />

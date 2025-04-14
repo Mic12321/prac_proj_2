@@ -37,6 +37,7 @@ const SearchItem: React.FC = () => {
       ]);
 
       setCategories(categoriesData);
+      setSelectedCategories(categoriesData.map((c) => c.category_id!));
 
       const updatedItems: Item[] = itemsData.map((item: any) => ({
         ...item,
@@ -79,9 +80,7 @@ const SearchItem: React.FC = () => {
           .includes(searchQuery.toLowerCase()) ||
         item.category_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory =
-        selectedCategories.length === 0 ||
-        selectedCategories.includes(item.category_id!);
+      const matchesCategory = selectedCategories.includes(item.category_id!);
 
       return matchesSearch && matchesCategory;
     });
