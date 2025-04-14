@@ -5,6 +5,8 @@ import { fetchCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
 import CategoryFilterDropdown from "../components/CategoryFilterDropdown";
+import ItemSearchBar from "../components/ItemSearchBar";
+import ItemTable from "../components/ItemTable";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
@@ -191,167 +193,26 @@ const SearchItem: React.FC = () => {
       />
       <h1>Search and Edit Items</h1>
 
-      <div className="mb-4 d-flex">
-        <input
-          type="text"
-          className="form-control me-2"
-          placeholder="Search for items..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-        <button
-          className="btn btn-success"
-          onClick={() => navigate("/add-item")}
-        >
-          Add New Item
-        </button>
+      <ItemSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onAddItemClick={() => navigate("/add-item")}
+        categories={filteredCategories}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+      />
 
-        <CategoryFilterDropdown
-          categories={filteredCategories}
-          selectedCategories={selectedCategories}
-          setSelectedCategories={setSelectedCategories}
-          className={customClassCategoryFilterDropdown}
-        />
-      </div>
-
-      <div>
-        {filteredItems.length === 0 ? (
-          <p>No items found.</p>
-        ) : (
-          <table className="table table-striped table-bordered">
-            <thead>
-              <tr>
-                {[
-                  "item_name",
-                  "category_name",
-                  "stock_quantity",
-                  "unit_name",
-                  "price",
-                ].map((key) => (
-                  <th
-                    key={key}
-                    onClick={() => handleSort(key as keyof Item)}
-                    style={{ cursor: "pointer", minWidth: "150px" }}
-                  >
-                    {key.replace("_", " ").toUpperCase()}{" "}
-                    <span style={{ display: "inline-block", width: "15px" }}>
-                      {sortConfig?.key === key
-                        ? sortConfig.direction === "asc"
-                          ? "↑"
-                          : "↓"
-                        : " "}
-                    </span>
-                  </th>
-                ))}
-                <th style={{ minWidth: "100px" }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.map((item) => (
-                <tr key={item.item_id}>
-                  {editedItem?.item_id === item.item_id ? (
-                    <>
-                      <td>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editedItem?.item_name || ""}
-                          onChange={(e) =>
-                            setEditedItem((prev) =>
-                              prev
-                                ? { ...prev, item_name: e.target.value }
-                                : prev
-                            )
-                          }
-                        />
-                      </td>
-                      <td>{item.category_name}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="form-control"
-                          value={editedItem?.stock_quantity ?? ""}
-                          onChange={(e) =>
-                            setEditedItem((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    stock_quantity:
-                                      parseInt(e.target.value) || 0,
-                                  }
-                                : prev
-                            )
-                          }
-                        />
-                      </td>
-                      <td>{item.unit_name}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="form-control"
-                          value={editedItem?.price ?? ""}
-                          onChange={(e) =>
-                            setEditedItem((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    price: parseFloat(e.target.value) || 0,
-                                  }
-                                : prev
-                            )
-                          }
-                        />
-                      </td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-success btn-sm"
-                            onClick={handleSaveItem}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={handleCacnelEdit}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{item.item_name}</td>
-                      <td>{item.category_name}</td>
-                      <td>{item.stock_quantity}</td>
-                      <td>{item.unit_name}</td>
-                      <td>${item.price}</td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleEditItem(item)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() =>
-                              navigate(`/item-detail/${item.item_id}`)
-                            }
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <ItemTable
+        items={filteredItems}
+        editedItem={editedItem}
+        sortConfig={sortConfig}
+        onEditItem={handleEditItem}
+        onSaveItem={handleSaveItem}
+        onCancelEdit={handleCacnelEdit}
+        onSort={handleSort}
+        setEditedItem={setEditedItem}
+        navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
+      />
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
