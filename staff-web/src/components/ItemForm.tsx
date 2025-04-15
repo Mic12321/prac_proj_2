@@ -5,6 +5,7 @@ import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
 import IngredientList from "./IngredientList";
 import { useNavigate } from "react-router";
+import AddCategoryModal from "./AddCategoryModal";
 
 interface ItemFormProps {
   initialData?: Item;
@@ -358,47 +359,17 @@ const ItemForm: React.FC<ItemFormProps> = ({
         </button>
       )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add New Category</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Category Name</Form.Label>
-            <Form.Control
-              type="text"
-              value={newCategory}
-              onChange={(e) => {
-                setNewCategory(e.target.value);
-                if (e.target.value.trim() !== "") {
-                  setCategoryNameError("");
-                }
-              }}
-              placeholder="Enter category name"
-            />
-            {categoryNameError && (
-              <div className="text-danger mt-2">{categoryNameError}</div>
-            )}
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Category Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              value={newCategoryDescription}
-              onChange={(e) => setNewCategoryDescription(e.target.value)}
-              placeholder="Enter category description (Optional)"
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleCategorySubmit}>
-            Add Category
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <AddCategoryModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleCategorySubmit}
+        newCategory={newCategory}
+        setNewCategory={setNewCategory}
+        newCategoryDescription={newCategoryDescription}
+        setNewCategoryDescription={setNewCategoryDescription}
+        categoryNameError={categoryNameError}
+        setCategoryNameError={setCategoryNameError}
+      />
     </form>
   );
 };
