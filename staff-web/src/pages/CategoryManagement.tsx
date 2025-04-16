@@ -27,6 +27,7 @@ const CategoryManagement: React.FC = () => {
     try {
       const categoriesData = await getCategories();
       setCategories(categoriesData);
+      setFilteredCategories(categoriesData);
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
