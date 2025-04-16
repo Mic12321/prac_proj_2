@@ -13,6 +13,8 @@ interface ItemTableProps {
   navigateToDetail: (id: number) => void;
   isEditing: boolean;
   onSelectItem: (item: Item) => void;
+  showRemoveButton: boolean;
+  onRemoveItem: (item: Item) => void;
 }
 
 const ItemTable: React.FC<ItemTableProps> = ({
@@ -27,6 +29,8 @@ const ItemTable: React.FC<ItemTableProps> = ({
   navigateToDetail,
   isEditing,
   onSelectItem,
+  showRemoveButton,
+  onRemoveItem,
 }) => {
   if (items.length === 0) return <p>No items found.</p>;
 
@@ -152,6 +156,14 @@ const ItemTable: React.FC<ItemTableProps> = ({
                         >
                           View Details
                         </button>
+                        {showRemoveButton && (
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => onRemoveItem(item)}
+                          >
+                            Remove
+                          </button>
+                        )}
                       </>
                     ) : (
                       <>

@@ -212,6 +212,8 @@ const SearchItem: React.FC = () => {
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
         isEditing={isEditing}
         onSelectItem={() => {}}
+        showRemoveButton={false}
+        onRemoveItem={() => {}}
       />
       <ToastNotification
         show={showToast}

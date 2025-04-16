@@ -183,6 +183,8 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
         isEditing={false}
         onSelectItem={handleSelectItem}
+        showRemoveButton={false}
+        onRemoveItem={() => {}}
       />
 
       <EditItemQuantityModal
