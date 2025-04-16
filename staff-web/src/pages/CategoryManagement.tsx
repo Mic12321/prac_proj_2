@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getAllItems, getItemById, Item } from "../services/itemService";
 import IngredientSelector from "../components/IngredientSelector";
 import ToastNotification from "../components/ToastNotification";
@@ -23,17 +23,16 @@ const CategoryManagement: React.FC = () => {
     console.log("hi");
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const categoriesData = await getCategories();
-
       setCategories(categoriesData);
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
       setShowToast(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCategories();
