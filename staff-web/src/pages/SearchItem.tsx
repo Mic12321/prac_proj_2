@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { getAllItems, updateItem, Item } from "../services/itemService";
-import { fetchCategories, Category } from "../services/categoryService";
+import { getCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
 import ItemSearchBar from "../components/ItemSearchBar";
@@ -33,7 +33,7 @@ const SearchItem: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       const [categoriesData, itemsData] = await Promise.all([
-        fetchCategories(),
+        getCategories(),
         getAllItems(),
       ]);
 
@@ -185,10 +185,10 @@ const SearchItem: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <NavigateButton
+      {/* <NavigateButton
         navUrl="/stock-management"
         displayName="<- Back to stock management page"
-      />
+      /> */}
       <h1>Search and Edit Items</h1>
 
       <ItemSearchBar

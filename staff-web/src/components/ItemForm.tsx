@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { fetchCategories, addCategory } from "../services/categoryService";
+import { getCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
 import IngredientList from "./IngredientList";
@@ -59,7 +59,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       try {
         setLoadingCategories(true);
 
-        const categoryData = await fetchCategories();
+        const categoryData = await getCategories();
 
         if (categoryData.length === 0) {
           throw new Error("No categories found.");

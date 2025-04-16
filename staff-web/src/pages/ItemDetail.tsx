@@ -149,10 +149,10 @@ const ItemDetail: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <NavigateButton
+      {/* <NavigateButton
         navUrl="/search-item"
         displayName="<- Back to search items page"
-      />
+      /> */}
       <h1>Item Detail</h1>
 
       {item && (

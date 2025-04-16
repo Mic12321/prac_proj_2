@@ -6,7 +6,7 @@ export interface Category {
   category_description: string;
 }
 
-export const fetchCategories = async (): Promise<Category[]> => {
+export const getCategories = async (): Promise<Category[]> => {
   try {
     const response = await fetch(API_ROUTES.CATEGORY);
     if (!response.ok) {
@@ -20,7 +20,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
   }
 };
 
-export const fetchCategoryById = async (
+export const getCategoryById = async (
   category_id: number
 ): Promise<Category | null> => {
   try {

@@ -29,7 +29,7 @@ const ItemSearchBar: React.FC<ItemSearchBarProps> = ({
         onChange={onSearchChange}
       />
       <button className="btn btn-success" onClick={onAddItemClick}>
-        Add New Item
+        Add A New Item
       </button>
 
       <CategoryFilterDropdown

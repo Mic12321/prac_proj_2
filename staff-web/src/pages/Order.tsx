@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import OrderItemDisplay from "../components/OrderItemDisplay";
 import { getItemsForSale, Item } from "../services/itemService";
-import { fetchCategories, Category } from "../services/categoryService";
+import { getCategories, Category } from "../services/categoryService";
 import { getIngredients, Ingredient } from "../services/ingredientService";
 import ShoppingCartPanel from "../components/ShoppingCartPanel";
 import NavigateButton from "../components/NavigateButton";
@@ -47,7 +47,7 @@ const Order: React.FC = () => {
       const [itemsData, cartData, categoryData] = await Promise.all([
         getItemsForSale(),
         getShoppingCart(userId),
-        fetchCategories(),
+        getCategories(),
       ]);
 
       setItems(itemsData);
