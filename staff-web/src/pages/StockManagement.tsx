@@ -26,7 +26,7 @@ const StockManagement: React.FC = () => {
             image={tempImg}
             label="Category Management Button"
             displayName="Category Management"
-            route="/stock-management"
+            route="/category-management"
           />
           <DashboardButton
             image={tempImg}

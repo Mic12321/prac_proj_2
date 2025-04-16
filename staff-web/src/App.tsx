@@ -18,6 +18,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 import IngredientManagement from "./pages/IngredientManagement";
 import ItemsUsingIngredient from "./pages/ItemsUsingIngredient";
+import CategoryManagement from "./pages/CategoryManagement";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -167,6 +168,15 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<ItemsUsingIngredient />}
+              />
+            }
+          />
+          <Route
+            path="/category-management"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<CategoryManagement />}
               />
             }
           />
