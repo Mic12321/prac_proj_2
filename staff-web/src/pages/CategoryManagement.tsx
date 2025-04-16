@@ -64,7 +64,7 @@ const CategoryManagement: React.FC = () => {
 
       {categories.length > 0 ? (
         <CategoryTable
-          categories={categories}
+          categories={filteredCategories}
           editedCategory={null}
           sortConfig={sortConfig}
           onEditCategory={() => {}}
