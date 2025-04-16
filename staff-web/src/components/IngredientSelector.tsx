@@ -1,20 +1,29 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router";
 import { getAllItems, Item } from "../services/itemService";
 import { fetchCategories, Category } from "../services/categoryService";
-import NavigateButton from "../components/NavigateButton";
-import ToastNotification from "../components/ToastNotification";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
+import EditItemQuantityModal from "../components/EditItemQuantityModal";
+import ToastNotification from "../components/ToastNotification";
+import { useNavigate } from "react-router";
 
-const ModifyIngredient: React.FC = () => {
+interface IngredientSelectorProps {
+  mode: "assign-ingredient" | "used-in";
+  currentItem: Item;
+  addedItems: Item[];
+  availableItems: Item[];
+  onComplete: (ingredient: Item, quantity: number) => void;
+}
+
+const IngredientSelector: React.FC<IngredientSelectorProps> = ({
+  mode,
+  currentItem,
+  addedItems,
+  availableItems,
+  onComplete,
+}) => {
   const navigate = useNavigate();
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastVariant, setToastVariant] = useState<
-    "success" | "danger" | "info"
-  >("success");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -23,41 +32,52 @@ const ModifyIngredient: React.FC = () => {
     key: keyof Item;
     direction: string;
   } | null>(null);
+
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "danger" | "info"
+  >("success");
+
+  const fetchCategoriesData = useCallback(async () => {
     try {
-      const [categoriesData, itemsData] = await Promise.all([
-        fetchCategories(),
-        getAllItems(),
-      ]);
-
+      const categoriesData = await fetchCategories(); // Assuming fetchCategories is an async function that fetches category data
       setCategories(categoriesData);
       setSelectedCategories(categoriesData.map((c) => c.category_id!));
-
-      const updatedItems: Item[] = itemsData.map((item: any) => ({
-        ...item,
-        category_name:
-          categoriesData.find((cat) => cat.category_id === item.category_id)
-            ?.category_name || "",
-        picture:
-          item.picture instanceof File
-            ? URL.createObjectURL(item.picture)
-            : item.picture ?? undefined,
-      }));
-
-      setItems(updatedItems);
-      setFilteredItems(updatedItems);
-    } catch (error) {
+    } catch (err) {
       setToastVariant("danger");
-      setToastMessage("Failed to fetch data. Please try again.");
+      setToastMessage("Failed to fetch categories. Please try again.");
       setShowToast(true);
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const updateItems = useCallback(async () => {
+    try {
+      if (categories.length === 0) return;
+
+      const updatedItems = availableItems.map((item: Item) => ({
+        ...item,
+        category_name:
+          categories.find((cat) => cat.category_id === item.category_id)
+            ?.category_name || "",
+        picture:
+          item.picture instanceof File
+            ? URL.createObjectURL(item.picture)
+            : item.picture ?? null,
+      }));
+
+      setItems(updatedItems);
+      setFilteredItems(updatedItems);
+    } catch (err) {
+      setToastVariant("danger");
+      setToastMessage("Failed to update items. Please try again.");
+      setShowToast(true);
+    }
+  }, [categories, availableItems]);
 
   useEffect(() => {
     const filtered = items.filter((item) => {
@@ -72,32 +92,39 @@ const ModifyIngredient: React.FC = () => {
 
       return matchesSearch && matchesCategory;
     });
-
     setFilteredItems(filtered);
   }, [searchQuery, items, selectedCategories]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
   const handleSelectItem = (item: Item) => {
     setSelectedItem(item);
-    setToastVariant("info");
-    setToastMessage(`You selected: ${item.item_name}`);
-    setShowToast(true);
+    setQuantity(1);
+    setShowEditModal(true);
   };
 
-  const handleSaveSelection = () => {
-    if (!selectedItem) {
-      setToastVariant("danger");
-      setToastMessage("No item selected.");
-      setShowToast(true);
-      return;
-    }
+  useEffect(() => {
+    fetchCategoriesData();
+  }, [fetchCategoriesData]);
 
-    setToastVariant("success");
-    setToastMessage(`Ingredient ${selectedItem.item_name} added successfully.`);
-    setShowToast(true);
+  useEffect(() => {
+    updateItems();
+  }, [updateItems, availableItems, categories]);
+
+  const handleSaveQuantity = () => {
+    if (selectedItem) {
+      onComplete(selectedItem, quantity);
+
+      setToastVariant("success");
+      setToastMessage(
+        `Added ${quantity} of ${selectedItem.item_name} ${
+          mode === "assign-ingredient" ? "as ingredient" : "as usage"
+        }.`
+      );
+      setShowToast(true);
+
+      setSelectedItem(null);
+      setQuantity(1);
+      setShowEditModal(false);
+    }
   };
 
   const handleSort = (key: keyof Item) => {
@@ -127,30 +154,25 @@ const ModifyIngredient: React.FC = () => {
   }, [categories, items]);
 
   return (
-    <div className="container mt-4">
-      <NavigateButton
-        navUrl="/stock-management"
-        displayName="<- Back to stock management page"
-      />
-      <h1>Select an Item to Add as Ingredient</h1>
+    <div className="mt-3">
+      <h4>
+        {mode === "assign-ingredient"
+          ? "Select item to use as ingredient"
+          : "Select where this item is used as an ingredient"}
+      </h4>
 
       <ItemSearchBar
         searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        onAddItemClick={() => navigate("/add-item")}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        onAddItemClick={() => {}}
         categories={filteredCategories}
         selectedCategories={selectedCategories}
         setSelectedCategories={setSelectedCategories}
       />
 
-      {selectedItem && (
-        <div className="alert alert-info mt-3">
-          <strong>Selected Item: </strong> {selectedItem.item_name}
-        </div>
-      )}
-
       <ItemTable
         items={filteredItems}
+        //
         editedItem={null}
         sortConfig={sortConfig}
         onEditItem={() => {}}
@@ -163,21 +185,24 @@ const ModifyIngredient: React.FC = () => {
         onSelectItem={handleSelectItem}
       />
 
-      <div className="mt-3">
-        <button className="btn btn-success" onClick={handleSaveSelection}>
-          Save Selection
-        </button>
-      </div>
+      <EditItemQuantityModal
+        show={showEditModal}
+        itemName={selectedItem?.item_name || ""}
+        quantity={quantity}
+        onQuantityChange={setQuantity}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleSaveQuantity}
+      />
 
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
         message={toastMessage}
         variant={toastVariant}
-        delay={5000}
+        delay={3000}
       />
     </div>
   );
 };
 
-export default ModifyIngredient;
+export default IngredientSelector;

@@ -10,7 +10,7 @@ export interface Item {
   price: number;
   category_id: number;
   for_sale: boolean;
-  picture: File | null;
+  picture: File | string | null;
   category_name?: string;
 }
 

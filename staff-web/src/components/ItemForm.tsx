@@ -6,6 +6,7 @@ import { Ingredient } from "../services/ingredientService";
 import IngredientList from "./IngredientList";
 import { useNavigate } from "react-router";
 import AddCategoryModal from "./AddCategoryModal";
+import IngredientSelector from "./IngredientSelector";
 
 interface ItemFormProps {
   initialData?: Item;
@@ -180,15 +181,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleToModifyIngredientForItem = () => {
-    console.log("handleToModifyIngredientForItem");
-
-    navigate("/modify-ingredient");
+    navigate(`/item/${formData.item_id}/ingredients`);
   };
 
   const handleToModifyIngredientForItemUsingThisIngredient = () => {
-    console.log("handleToModifyIngredientForItemUsingThisIngredient");
-
-    navigate("/modify-ingredient");
+    navigate(`/ingredient/${formData.item_id}/items-using`);
   };
 
   return (
@@ -328,8 +325,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
           Modify Ingredient
         </button>
       </div>
+
       <div className="mt-4">
-        <h4 className="mt-4">Items Using This Ingredient</h4>
+        <h4>Items Using This Ingredient</h4>
         {itemIngredientsUsedIn.length > 0 ? (
           <IngredientList ingredients={itemIngredientsUsedIn} />
         ) : (

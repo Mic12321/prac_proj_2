@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Ingredient = require("../models/Ingredient");
 const Item = require("../models/Item");
+const Category = require("../models/Category");
+const { Op } = require("sequelize");
 
 router.get("/used-in/:itemId", async (req, res) => {
   try {
@@ -16,6 +18,33 @@ router.get("/used-in/:itemId", async (req, res) => {
   } catch (error) {
     console.error("Error fetching items using this ingredient:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/available/:itemId", async (req, res) => {
+  const itemId = req.params.itemId;
+
+  try {
+    const linkedIngredients = await Ingredient.findAll({
+      where: { item_to_create_id: itemId },
+      attributes: ["ingredient_item_id"],
+    });
+
+    const linkedIds = linkedIngredients.map((i) => i.ingredient_item_id);
+
+    const availableItems = await Item.findAll({
+      where: linkedIds.length
+        ? {
+            item_id: {
+              [Op.notIn]: [...linkedIds, itemId],
+            },
+          }
+        : {},
+    });
+
+    res.json(availableItems);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching available items" });
   }
 });
 

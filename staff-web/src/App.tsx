@@ -11,12 +11,13 @@ import SearchItem from "./pages/SearchItem";
 import AddItem from "./pages/AddItem";
 import Checkout from "./pages/Checkout";
 import ItemDetail from "./pages/ItemDetail";
-import ModifyIngredient from "./pages/ModifyIngredient";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./App.css";
+import IngredientManagement from "./pages/IngredientManagement";
+import ItemsUsingIngredient from "./pages/ItemsUsingIngredient";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -152,11 +153,20 @@ function App() {
             }
           />
           <Route
-            path="/modify-ingredient"
+            path="/item/:itemId/ingredients"
             element={
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
-                element={<ModifyIngredient />}
+                element={<IngredientManagement />}
+              />
+            }
+          />
+          <Route
+            path="/ingredient/:ingredientId/items-using"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<ItemsUsingIngredient />}
               />
             }
           />
