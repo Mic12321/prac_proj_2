@@ -80,7 +80,7 @@ const ItemsUsingIngredient: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>Manage Ingredients of Apple</h2>
+      <h2>Manage Ingredients of {item?.item_name}</h2>
 
       {ingredients.length > 0 ? (
         <IngredientSelector

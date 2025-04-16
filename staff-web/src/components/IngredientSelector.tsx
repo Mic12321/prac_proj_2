@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getAllItems, Item } from "../services/itemService";
-import { fetchCategories, Category } from "../services/categoryService";
+import { getCategories, Category } from "../services/categoryService";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
 import EditItemQuantityModal from "../components/EditItemQuantityModal";
@@ -45,7 +45,7 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
 
   const fetchCategoriesData = useCallback(async () => {
     try {
-      const categoriesData = await fetchCategories(); // Assuming fetchCategories is an async function that fetches category data
+      const categoriesData = await getCategories();
       setCategories(categoriesData);
       setSelectedCategories(categoriesData.map((c) => c.category_id!));
     } catch (err) {
@@ -157,6 +157,28 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
     <div className="mt-3">
       <h4>
         {mode === "assign-ingredient"
+          ? `List of Ingredients for ${currentItem.item_name}`
+          : `List of items that use ${currentItem.item_name} as an ingredient`}
+      </h4>
+
+      <ItemTable
+        items={filteredItems}
+        editedItem={null}
+        sortConfig={sortConfig}
+        onEditItem={() => {}}
+        onSaveItem={() => {}}
+        onCancelEdit={() => {}}
+        onSort={handleSort}
+        setEditedItem={() => {}}
+        navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
+        isEditing={true}
+        onSelectItem={handleSelectItem}
+        showRemoveButton={true}
+        onRemoveItem={() => {}}
+      />
+
+      <h4>
+        {mode === "assign-ingredient"
           ? "Select item to use as ingredient"
           : "Select where this item is used as an ingredient"}
       </h4>
@@ -172,7 +194,6 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
 
       <ItemTable
         items={filteredItems}
-        //
         editedItem={null}
         sortConfig={sortConfig}
         onEditItem={() => {}}
