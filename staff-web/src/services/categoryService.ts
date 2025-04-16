@@ -70,19 +70,19 @@ export const addCategory = async (
 export const updateCategory = async (
   category_id: number,
   category: Category
-): Promise<boolean> => {
-  try {
-    const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(category),
-    });
+): Promise<Category> => {
+  const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(category),
+  });
 
-    return response.ok;
-  } catch (error) {
-    console.error("Error updating category:", error);
-    return false;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error updating items");
   }
+
+  return await response.json();
 };
 
 export const deleteCategory = async (category_id: number): Promise<boolean> => {

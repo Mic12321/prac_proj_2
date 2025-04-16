@@ -64,7 +64,7 @@ export const getAllItems = async (): Promise<Item[]> => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || "Error fetching items");
+    throw new Error(errorData.error || "Error fetching all items");
   }
 
   try {

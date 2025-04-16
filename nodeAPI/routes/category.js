@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Category = require("../models/Category");
+const { Op } = require("sequelize");
 
 router.get("/", async (req, res) => {
   try {
@@ -38,15 +39,30 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
     const { category_name, category_description } = req.body;
+
+    const category = await Category.findByPk(id);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    const existingCategory = await Category.findOne({
+      where: { category_name, category_id: { [Op.ne]: id } },
+    });
+
+    if (existingCategory) {
+      return res
+        .status(400)
+        .json({ error: "Category with this name already exists" });
+    }
+
     const updated = await Category.update(
       { category_name, category_description },
       { where: { category_id: req.params.id } }
     );
-
-    if (updated[0] === 0) {
-      return res.status(404).json({ error: "Category not found" });
-    }
 
     res.json({ message: "Category updated successfully" });
   } catch (error) {
