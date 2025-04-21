@@ -27,9 +27,21 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { category_name, category_description } = req.body;
+
+    const existingCategory = await Category.findOne({
+      where: { category_name },
+    });
+
+    if (existingCategory) {
+      return res
+        .status(400)
+        .json({ error: "Category with this name already exists" });
+    }
+
     const newCategory = await Category.create({
       category_name,
       category_description,
+      linked_item_quantity: 0,
     });
     res.status(201).json(newCategory);
   } catch (error) {
@@ -72,13 +84,20 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    const deleted = await Category.destroy({
-      where: { category_id: req.params.id },
-    });
+    const { id } = req.params;
 
-    if (!deleted) {
+    const category = await Category.findByPk(id);
+    if (!category) {
       return res.status(404).json({ error: "Category not found" });
     }
+
+    if (category.linked_item_quantity > 0) {
+      return res
+        .status(400)
+        .json({ error: "Cannot delete category with linked items" });
+    }
+
+    await category.destroy();
 
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
