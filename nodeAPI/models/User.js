@@ -15,6 +15,10 @@ const User = sequelize.define(
       allowNull: false,
       unique: true,
     },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
     account_creation: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
