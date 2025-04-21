@@ -3,11 +3,13 @@ import { getAllItems, getItemById, Item } from "../services/itemService";
 import IngredientSelector from "../components/IngredientSelector";
 import ToastNotification from "../components/ToastNotification";
 import {
+  addCategory,
   Category,
   getCategories,
   updateCategory,
 } from "../services/categoryService";
 import CategoryTable from "../components/CategoryTable";
+import AddCategoryModal from "../components/AddCategoryModal";
 
 const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -27,6 +29,11 @@ const CategoryManagement: React.FC = () => {
   const [originalCategory, setOriginalCategory] = useState<Category | null>(
     null
   );
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [newCategory, setNewCategory] = useState<string>("");
+  const [newCategoryDescription, setNewCategoryDescription] =
+    useState<string>("");
+  const [categoryNameError, setCategoryNameError] = useState<string>("");
 
   const handleComplete = (ingredient: Item, quantity: number) => {
     console.log("hi");
@@ -35,8 +42,22 @@ const CategoryManagement: React.FC = () => {
   const fetchCategories = useCallback(async () => {
     try {
       const categoriesData = await getCategories();
+
       setCategories(categoriesData);
-      setFilteredCategories(categoriesData);
+
+      let updatedCategories = [...categoriesData];
+
+      if (sortConfig) {
+        updatedCategories.sort((a, b) => {
+          if (a[sortConfig.key]! < b[sortConfig.key]!)
+            return sortConfig.direction === "asc" ? -1 : 1;
+          if (a[sortConfig.key]! > b[sortConfig.key]!)
+            return sortConfig.direction === "asc" ? 1 : -1;
+          return 0;
+        });
+      }
+
+      setFilteredCategories(updatedCategories);
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
@@ -137,9 +158,53 @@ const CategoryManagement: React.FC = () => {
     setEditedCategory(category);
   };
 
+  const handleCategorySubmit = async () => {
+    const trimmedCategory = newCategory.trim();
+    const trimmedDescription = newCategoryDescription.trim();
+
+    if (!trimmedCategory) {
+      setCategoryNameError("Category name is required.");
+      return;
+    }
+
+    setCategoryNameError("");
+
+    try {
+      const existingCategory = categories.find(
+        (category) =>
+          category.category_name.toLowerCase() === trimmedCategory.toLowerCase()
+      );
+
+      if (!existingCategory) {
+        const newCategoryObj = await addCategory({
+          category_name: trimmedCategory,
+          category_description: trimmedDescription,
+        });
+
+        await fetchCategories();
+      }
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(
+        error.message || "Failed to add categories. Please try again."
+      );
+      setShowToast(true);
+    }
+
+    setNewCategory("");
+    setNewCategoryDescription("");
+    setShowModal(false);
+  };
+
   return (
     <div className="container mt-4">
       <h2>Category Management</h2>
+      <button
+        className="btn btn-success mt-4 mb-4"
+        onClick={() => setShowModal(true)}
+      >
+        Create a new category
+      </button>
 
       {categories.length > 0 ? (
         <CategoryTable
@@ -160,6 +225,17 @@ const CategoryManagement: React.FC = () => {
       ) : (
         <p>No categories found.</p>
       )}
+      <AddCategoryModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleCategorySubmit}
+        newCategory={newCategory}
+        setNewCategory={setNewCategory}
+        newCategoryDescription={newCategoryDescription}
+        setNewCategoryDescription={setNewCategoryDescription}
+        categoryNameError={categoryNameError}
+        setCategoryNameError={setCategoryNameError}
+      />
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
