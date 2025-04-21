@@ -32,7 +32,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   showRemoveButton,
   onRemoveCategory,
 }) => {
-  if (categories.length === 0) return <p>No items found.</p>;
+  if (categories.length === 0) return <p>No categories found.</p>;
 
   return (
     <table className="table table-striped table-bordered">
@@ -41,7 +41,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
           {[
             "category_name",
             "category_description",
-            // "items_belong_quantity",
+            "linked_item_quantity",
           ].map((key) => (
             <th
               key={key}
@@ -92,7 +92,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                     }
                   />
                 </td>
-                {/* <td>{category.items_belong_quantity}</td> */}
+                <td>{category.linked_item_quantity}</td>
                 <td>
                   <div className="d-flex gap-2">
                     <button
@@ -114,7 +114,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
               <>
                 <td>{category.category_name}</td>
                 <td>{category.category_description}</td>
-                {/* <td>{category.items_belong_quantity}</td> */}
+                <td>{category.linked_item_quantity}</td>
                 <td>
                   <div className="d-flex gap-2">
                     {isEditing ? (
