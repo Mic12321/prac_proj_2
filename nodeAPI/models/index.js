@@ -48,6 +48,33 @@ Ingredient.belongsTo(Item, {
   as: "itemToCreate",
 });
 
+Item.addHook("afterCreate", async (item, options) => {
+  await Category.increment("linked_item_quantity", {
+    by: 1,
+    where: { category_id: item.category_id },
+  });
+});
+
+Item.addHook("afterDestroy", async (item, options) => {
+  await Category.decrement("linked_item_quantity", {
+    by: 1,
+    where: { category_id: item.category_id },
+  });
+});
+
+Item.addHook("afterUpdate", async (item, options) => {
+  if (item._previousDataValues.category_id !== item.category_id) {
+    await Category.decrement("linked_item_quantity", {
+      by: 1,
+      where: { category_id: item._previousDataValues.category_id },
+    });
+    await Category.increment("linked_item_quantity", {
+      by: 1,
+      where: { category_id: item.category_id },
+    });
+  }
+});
+
 module.exports = {
   sequelize,
   User,

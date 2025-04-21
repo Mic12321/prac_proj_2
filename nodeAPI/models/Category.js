@@ -19,6 +19,11 @@ const Category = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    linked_item_quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "category",
