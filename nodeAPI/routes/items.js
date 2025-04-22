@@ -27,6 +27,21 @@ router.get("/for-sale", async (req, res) => {
   }
 });
 
+router.get("/by-category/:categoryId", async (req, res) => {
+  const { categoryId } = req.params;
+
+  try {
+    const items = await Item.findAll({
+      where: { category_id: categoryId },
+      include: [{ model: Category }],
+    });
+
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 

@@ -10,8 +10,11 @@ import {
 } from "../services/categoryService";
 import CategoryTable from "../components/CategoryTable";
 import AddCategoryModal from "../components/AddCategoryModal";
+import { useNavigate } from "react-router";
 
 const CategoryManagement: React.FC = () => {
+  const navigate = useNavigate();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [toastMessage, setToastMessage] = useState("");
@@ -216,7 +219,9 @@ const CategoryManagement: React.FC = () => {
           onCancelEdit={handleCancelEdit}
           onSort={handleSort}
           setEditedCategory={setEditedCategory}
-          navigateToDetail={(id) => {}}
+          navigateToDetail={(categoryId) => {
+            navigate(`/category-detail/${categoryId}`);
+          }}
           isEditing={true}
           onSelectCategory={() => {}}
           showRemoveButton={true}

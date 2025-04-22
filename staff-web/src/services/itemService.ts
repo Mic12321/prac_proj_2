@@ -96,3 +96,16 @@ export const deleteItem = async (id: number): Promise<{ message: string }> => {
 
   return await response.json();
 };
+
+export const getItemsByCategoryId = async (
+  categoryId: number
+): Promise<Item[]> => {
+  const response = await fetch(`${API_ROUTES.ITEMS}/by-category/${categoryId}`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error fetching items by category");
+  }
+
+  return await response.json();
+};

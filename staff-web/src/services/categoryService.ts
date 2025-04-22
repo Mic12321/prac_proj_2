@@ -25,6 +25,7 @@ export const getCategoryById = async (
   category_id: number
 ): Promise<Category | null> => {
   try {
+    console.log(category_id);
     const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`);
     if (!response.ok) {
       const errorData = await response.json();
