@@ -16,7 +16,6 @@ const CategoryDetail: React.FC = () => {
     key: keyof Item;
     direction: string;
   } | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,8 +24,16 @@ const CategoryDetail: React.FC = () => {
         try {
           const fetchedCategory = await getCategoryById(Number(categoryId));
           const fetchedItems = await getItemsByCategoryId(Number(categoryId));
-          setCategory(fetchedCategory);
-          setItems(fetchedItems || []);
+
+          if (fetchedCategory && fetchedItems) {
+            const itemsWithCategoryName = fetchedItems.map((item) => ({
+              ...item,
+              category_name: fetchedCategory.category_name,
+            }));
+
+            setCategory(fetchedCategory);
+            setItems(itemsWithCategoryName);
+          }
         } catch (error) {
           console.error("Error fetching data:", error);
         } finally {
@@ -95,10 +102,10 @@ const CategoryDetail: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>Category Detail: {category.category_name}</h2>
+      <h2>Category Detail</h2>
+      <h4 className="mt-2">{category.category_name}</h4>
       <p>{category.category_description}</p>
-
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mt-2">
         <h4>Items ({items.length})</h4>
       </div>
 
@@ -112,7 +119,7 @@ const CategoryDetail: React.FC = () => {
         onSort={handleSort}
         setEditedItem={setEditedItem}
         navigateToDetail={navigateToDetail}
-        isEditing={isEditing}
+        isEditing={true}
         onSelectItem={handleSelectItem}
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}
