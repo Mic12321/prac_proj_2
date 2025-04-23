@@ -1,21 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getCategoryById, Category } from "../services/categoryService";
-import { getItemsByCategoryId, Item } from "../services/itemService";
+import {
+  deleteItem,
+  getItemsByCategoryId,
+  Item,
+  updateItem,
+} from "../services/itemService";
 import ItemTable from "../components/ItemTable";
+import ToastNotification from "../components/ToastNotification";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const CategoryDetail: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "danger" | "info"
+  >("success");
+
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
+  const [originalItem, setOriginalItem] = useState<Item | null>(null);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Item;
     direction: string;
   } | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,18 +63,66 @@ const CategoryDetail: React.FC = () => {
   }, [categoryId]);
 
   const handleEditItem = (item: Item) => {
+    if (editedItem && editedItem.item_id !== item.item_id) {
+      if (
+        originalItem &&
+        JSON.stringify(editedItem) !== JSON.stringify(originalItem)
+      ) {
+        const userConfirmed = window.confirm(
+          "You have unsaved changes. Do you want to discard them?"
+        );
+        if (!userConfirmed) {
+          return;
+        }
+      }
+    }
+
+    setOriginalItem({ ...item });
     setEditedItem(item);
-    setIsEditing(true);
   };
 
-  const handleSaveItem = () => {
-    setEditedItem(null);
-    setIsEditing(false);
+  const handleSaveItem = async () => {
+    if (editedItem) {
+      if (JSON.stringify(editedItem) === JSON.stringify(originalItem)) {
+        setToastVariant("info");
+        setToastMessage("No changes were made to the item.");
+        setShowToast(true);
+        return;
+      }
+      try {
+        const updatedItems = items.map((item) =>
+          item.item_id === editedItem.item_id
+            ? { ...item, ...editedItem }
+            : item
+        );
+        setItems(updatedItems);
+
+        const updatedItem = await updateItem(editedItem.item_id!, editedItem);
+
+        setEditedItem(null);
+        setToastVariant("success");
+        setToastMessage("Item updated successfully!");
+        setShowToast(true);
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(
+          error.message || "Failed to update item. Please try again."
+        );
+        setShowToast(true);
+      }
+    }
   };
 
   const handleCancelEdit = () => {
+    if (originalItem) {
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.item_id === originalItem.item_id ? originalItem : item
+        )
+      );
+    }
     setEditedItem(null);
-    setIsEditing(false);
+    setOriginalItem(null);
   };
 
   const handleSort = (key: keyof Item) => {
@@ -75,12 +140,42 @@ const CategoryDetail: React.FC = () => {
     );
   };
 
-  const handleSelectItem = (item: Item) => {
-    console.log("Selected item:", item);
+  const handleDeleteClick = (id: number) => {
+    setItemToDelete(id);
+    setShowConfirmDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (itemToDelete !== null) {
+      try {
+        await deleteItem(itemToDelete);
+
+        setItems((prevItems) =>
+          prevItems.filter((item) => item.item_id !== itemToDelete)
+        );
+
+        setToastMessage("Item deleted successfully!");
+        setToastVariant("success");
+        setShowToast(true);
+      } catch (error: any) {
+        setToastVariant("danger");
+        setToastMessage(error.message || "Error deleting item.");
+        setShowToast(true);
+      }
+    }
+
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
   };
 
   const handleRemoveItem = (item: Item) => {
-    setItems((prev) => prev.filter((i) => i.item_id !== item.item_id));
+    setItemToDelete(item.item_id!);
+    setShowConfirmDialog(true);
   };
 
   const navigateToDetail = (id: number) => {
@@ -120,9 +215,27 @@ const CategoryDetail: React.FC = () => {
         setEditedItem={setEditedItem}
         navigateToDetail={navigateToDetail}
         isEditing={true}
-        onSelectItem={handleSelectItem}
+        onSelectItem={() => {}}
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}
+      />
+      <ConfirmationModal
+        show={showConfirmDialog}
+        onHide={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Item"
+        message="Are you sure you want to delete this item?"
+        cancelButtonLabel="No, Cancel"
+        confirmButtonLabel="Yes, Delete"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-danger"
+      />
+      <ToastNotification
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        variant={toastVariant}
+        delay={5000}
       />
     </div>
   );
