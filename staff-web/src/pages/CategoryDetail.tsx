@@ -202,6 +202,9 @@ const CategoryDetail: React.FC = () => {
       <p>{category.category_description}</p>
       <div className="d-flex justify-content-between align-items-center mt-2">
         <h4>Items ({items.length})</h4>
+        {/* <button className="btn btn-success mt-4 mb-4" onClick={() => {}}>
+          Create a new item belongs to this category
+        </button> */}
       </div>
 
       <ItemTable

@@ -134,12 +134,22 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
                           View Details
                         </button>
                         {showRemoveButton && (
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => onRemoveCategory(category)}
+                          <div
+                            title={
+                              category.linked_item_quantity !== 0
+                                ? "Cannot remove category with linked items"
+                                : "Remove category"
+                            }
+                            style={{ display: "inline-block" }}
                           >
-                            Remove
-                          </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => onRemoveCategory(category)}
+                              disabled={category.linked_item_quantity !== 0}
+                            >
+                              Remove
+                            </button>
+                          </div>
                         )}
                       </>
                     ) : (
