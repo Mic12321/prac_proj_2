@@ -73,6 +73,16 @@ const CategoryManagement: React.FC = () => {
     fetchCategories();
   }, [fetchCategories]);
 
+  useEffect(() => {
+    const message = sessionStorage.getItem("successMessage");
+    if (message) {
+      setToastVariant("success");
+      setToastMessage(message);
+      setShowToast(true);
+      sessionStorage.removeItem("successMessage");
+    }
+  }, []);
+
   const handleSort = (key: keyof Category) => {
     let direction = "asc";
     if (
