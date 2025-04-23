@@ -5,6 +5,7 @@ import ToastNotification from "../components/ToastNotification";
 import {
   addCategory,
   Category,
+  deleteCategory,
   getCategories,
   updateCategory,
 } from "../services/categoryService";
@@ -161,6 +162,41 @@ const CategoryManagement: React.FC = () => {
     setEditedCategory(category);
   };
 
+  const handleRemoveCategory = async (category: Category) => {
+    if (category.linked_item_quantity! > 0) {
+      setToastVariant("danger");
+      setToastMessage("Cannot delete category with linked items.");
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      const deletionSuccess = await deleteCategory(category.category_id!);
+
+      if (deletionSuccess) {
+        const updatedCategories = categories.filter(
+          (item) => item.category_id !== category.category_id
+        );
+        setCategories(updatedCategories);
+        setFilteredCategories(updatedCategories);
+
+        setToastVariant("success");
+        setToastMessage("Category deleted successfully!");
+        setShowToast(true);
+      } else {
+        setToastVariant("danger");
+        setToastMessage("Failed to delete category. Please try again.");
+        setShowToast(true);
+      }
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(
+        error.message || "Failed to delete category. Please try again."
+      );
+      setShowToast(true);
+    }
+  };
+
   const handleCategorySubmit = async () => {
     const trimmedCategory = newCategory.trim();
     const trimmedDescription = newCategoryDescription.trim();
@@ -225,7 +261,7 @@ const CategoryManagement: React.FC = () => {
           isEditing={true}
           onSelectCategory={() => {}}
           showRemoveButton={true}
-          onRemoveCategory={() => {}}
+          onRemoveCategory={handleRemoveCategory}
         />
       ) : (
         <p>No categories found.</p>
