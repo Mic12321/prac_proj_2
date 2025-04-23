@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getCategoryById, Category } from "../services/categoryService";
+import {
+  getCategoryById,
+  Category,
+  updateCategory,
+  deleteCategory,
+} from "../services/categoryService";
 import {
   deleteItem,
   getItemsByCategoryId,
@@ -10,6 +15,7 @@ import {
 import ItemTable from "../components/ItemTable";
 import ToastNotification from "../components/ToastNotification";
 import ConfirmationModal from "../components/ConfirmationModal";
+import CategoryForm from "../components/CategoryForm";
 
 const CategoryDetail: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -33,6 +39,11 @@ const CategoryDetail: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(true);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmationModalTitle, setConfirmationModalTitle] =
+    useState<string>("");
+  const [confirmationModalMessage, setConfirmationModalMessage] =
+    useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -140,34 +151,6 @@ const CategoryDetail: React.FC = () => {
     );
   };
 
-  const handleDeleteClick = (id: number) => {
-    setItemToDelete(id);
-    setShowConfirmDialog(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (itemToDelete !== null) {
-      try {
-        await deleteItem(itemToDelete);
-
-        setItems((prevItems) =>
-          prevItems.filter((item) => item.item_id !== itemToDelete)
-        );
-
-        setToastMessage("Item deleted successfully!");
-        setToastVariant("success");
-        setShowToast(true);
-      } catch (error: any) {
-        setToastVariant("danger");
-        setToastMessage(error.message || "Error deleting item.");
-        setShowToast(true);
-      }
-    }
-
-    setShowConfirmDialog(false);
-    setItemToDelete(null);
-  };
-
   const handleDeleteCancel = () => {
     setShowConfirmDialog(false);
     setItemToDelete(null);
@@ -175,6 +158,9 @@ const CategoryDetail: React.FC = () => {
 
   const handleRemoveItem = (item: Item) => {
     setItemToDelete(item.item_id!);
+    setConfirmationModalTitle("Delete Item");
+    setConfirmationModalMessage("Are you sure you want to delete this item?");
+    setConfirmAction(() => () => handleDeleteConfirmItem(item.item_id!));
     setShowConfirmDialog(true);
   };
 
@@ -195,18 +181,93 @@ const CategoryDetail: React.FC = () => {
     return <p>Category not found.</p>;
   }
 
+  const handleSubmit = async (data: Category) => {
+    try {
+      await updateCategory(data.category_id!, data);
+
+      setToastMessage("Category updated successfully!");
+      setToastVariant("success");
+      setShowToast(true);
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(
+        error.message || "An error occurred while updating the category."
+      );
+      setShowToast(true);
+    }
+  };
+
+  const handleDeleteCategory = () => {
+    if (items.length !== 0) {
+      setToastVariant("danger");
+      setToastMessage(
+        "Cannot delete category with linked items. Please remove items first."
+      );
+      setShowToast(true);
+      return;
+    }
+
+    setConfirmationModalTitle("Delete Category");
+    setConfirmationModalMessage(
+      "Are you sure you want to delete this category?"
+    );
+    setConfirmAction(() => handleDeleteConfirmCategory);
+    setShowConfirmDialog(true);
+  };
+
+  const handleDeleteConfirmItem = async (id: number) => {
+    try {
+      await deleteItem(id);
+      setItems((prevItems) => prevItems.filter((item) => item.item_id !== id));
+      setToastMessage("Item deleted successfully!");
+      setToastVariant("success");
+      setShowToast(true);
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Error deleting item.");
+      setShowToast(true);
+    }
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteConfirmCategory = async () => {
+    try {
+      await deleteCategory(category.category_id!);
+
+      setToastMessage("Category deleted successfully!");
+      setToastVariant("success");
+      setShowToast(true);
+      sessionStorage.setItem(
+        "successMessage",
+        "Category deleted successfully!"
+      );
+
+      navigate("/category-management");
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Error deleting category.");
+      setShowToast(true);
+    }
+    setShowConfirmDialog(false);
+  };
+
   return (
     <div className="container mt-4">
       <h2>Category Detail</h2>
-      <h4 className="mt-2">{category.category_name}</h4>
-      <p>{category.category_description}</p>
-      <div className="d-flex justify-content-between align-items-center mt-2">
+
+      <CategoryForm
+        initialCategory={category}
+        onSubmit={handleSubmit}
+        onDelete={handleDeleteCategory}
+        hasItems={items.length !== 0}
+      />
+      <div className="d-flex justify-content-between align-items-center mt-4">
         <h4>Items ({items.length})</h4>
         {/* <button className="btn btn-success mt-4 mb-4" onClick={() => {}}>
           Create a new item belongs to this category
         </button> */}
       </div>
-
       <ItemTable
         items={items}
         editedItem={editedItem}
@@ -217,7 +278,7 @@ const CategoryDetail: React.FC = () => {
         onSort={handleSort}
         setEditedItem={setEditedItem}
         navigateToDetail={navigateToDetail}
-        isEditing={true}
+        isEditing={isEditing}
         onSelectItem={() => {}}
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}
@@ -225,9 +286,9 @@ const CategoryDetail: React.FC = () => {
       <ConfirmationModal
         show={showConfirmDialog}
         onHide={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Item"
-        message="Are you sure you want to delete this item?"
+        onConfirm={confirmAction ?? (() => {})}
+        title={confirmationModalTitle}
+        message={confirmationModalMessage}
         cancelButtonLabel="No, Cancel"
         confirmButtonLabel="Yes, Delete"
         cancelButtonClass="btn btn-secondary"
