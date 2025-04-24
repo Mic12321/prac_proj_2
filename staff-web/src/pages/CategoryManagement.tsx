@@ -12,6 +12,7 @@ import {
 import CategoryTable from "../components/CategoryTable";
 import AddCategoryModal from "../components/AddCategoryModal";
 import { useNavigate } from "react-router";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const CategoryManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +39,16 @@ const CategoryManagement: React.FC = () => {
   const [newCategoryDescription, setNewCategoryDescription] =
     useState<string>("");
   const [categoryNameError, setCategoryNameError] = useState<string>("");
+
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmationModalTitle, setConfirmationModalTitle] =
+    useState<string>("");
+  const [confirmationModalMessage, setConfirmationModalMessage] =
+    useState<string>("");
 
   const handleComplete = (ingredient: Item, quantity: number) => {
     console.log("hi");
@@ -172,7 +183,24 @@ const CategoryManagement: React.FC = () => {
     setEditedCategory(category);
   };
 
-  const handleRemoveCategory = async (category: Category) => {
+  const handleRemoveCategory = (category: Category) => {
+    if (category.linked_item_quantity! > 0) {
+      setToastVariant("danger");
+      setToastMessage("Cannot delete category with linked items.");
+      setShowToast(true);
+      return;
+    }
+
+    setCategoryToDelete(category);
+    setConfirmationModalTitle("Delete Category");
+    setConfirmationModalMessage(
+      `Are you sure you want to delete the category "${category.category_name}"?`
+    );
+    setConfirmAction(() => () => handleDeleteConfirmCategory(category));
+    setShowConfirmDialog(true);
+  };
+
+  const handleDeleteConfirmCategory = async (category: Category) => {
     if (category.linked_item_quantity! > 0) {
       setToastVariant("danger");
       setToastMessage("Cannot delete category with linked items.");
@@ -181,6 +209,7 @@ const CategoryManagement: React.FC = () => {
     }
 
     try {
+      setShowConfirmDialog(false);
       const deletionSuccess = await deleteCategory(category.category_id!);
 
       if (deletionSuccess) {
@@ -203,8 +232,14 @@ const CategoryManagement: React.FC = () => {
       setToastMessage(
         error.message || "Failed to delete category. Please try again."
       );
+
       setShowToast(true);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowConfirmDialog(false);
+    setCategoryToDelete(null);
   };
 
   const handleCategorySubmit = async () => {
@@ -293,6 +328,17 @@ const CategoryManagement: React.FC = () => {
         message={toastMessage}
         variant={toastVariant}
         delay={5000}
+      />
+      <ConfirmationModal
+        show={showConfirmDialog}
+        onHide={handleDeleteCancel}
+        onConfirm={confirmAction ?? (() => {})}
+        title={confirmationModalTitle}
+        message={confirmationModalMessage}
+        cancelButtonLabel="No, Cancel"
+        confirmButtonLabel="Yes, Delete"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-danger"
       />
     </div>
   );
