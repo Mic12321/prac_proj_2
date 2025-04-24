@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getAllItems, getItemById, Item } from "../services/itemService";
-import IngredientSelector from "../components/IngredientSelector";
 import ToastNotification from "../components/ToastNotification";
 import {
   addCategory,
@@ -41,44 +39,35 @@ const CategoryManagement: React.FC = () => {
   const [categoryNameError, setCategoryNameError] = useState<string>("");
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
-    null
-  );
+
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmationModalTitle, setConfirmationModalTitle] =
     useState<string>("");
   const [confirmationModalMessage, setConfirmationModalMessage] =
     useState<string>("");
 
-  const handleComplete = (ingredient: Item, quantity: number) => {
-    console.log("hi");
+  const applySort = (data: Category[]): Category[] => {
+    if (!sortConfig) return data;
+    return [...data].sort((a, b) => {
+      if (a[sortConfig.key]! < b[sortConfig.key]!)
+        return sortConfig.direction === "asc" ? -1 : 1;
+      if (a[sortConfig.key]! > b[sortConfig.key]!)
+        return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
   };
 
   const fetchCategories = useCallback(async () => {
     try {
       const categoriesData = await getCategories();
-
       setCategories(categoriesData);
-
-      let updatedCategories = [...categoriesData];
-
-      if (sortConfig) {
-        updatedCategories.sort((a, b) => {
-          if (a[sortConfig.key]! < b[sortConfig.key]!)
-            return sortConfig.direction === "asc" ? -1 : 1;
-          if (a[sortConfig.key]! > b[sortConfig.key]!)
-            return sortConfig.direction === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
-
-      setFilteredCategories(updatedCategories);
+      setFilteredCategories(applySort(categoriesData));
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
       setShowToast(true);
     }
-  }, []);
+  }, [sortConfig]);
 
   useEffect(() => {
     fetchCategories();
@@ -103,15 +92,9 @@ const CategoryManagement: React.FC = () => {
     ) {
       direction = "desc";
     }
-
-    const sortedCategories = [...categories].sort((a, b) => {
-      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
-      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setFilteredCategories(sortedCategories);
-    setSortConfig({ key, direction });
+    const newSortConfig = { key, direction };
+    setSortConfig(newSortConfig);
+    setFilteredCategories(applySort(categories));
   };
 
   const handleSaveCategory = async () => {
@@ -129,12 +112,9 @@ const CategoryManagement: React.FC = () => {
             : category
         );
         setCategories(updatedCategories);
-        setFilteredCategories(updatedCategories);
+        setFilteredCategories(applySort(updatedCategories));
 
-        const updatedCategory = await updateCategory(
-          editedCategory.category_id!,
-          editedCategory
-        );
+        await updateCategory(editedCategory.category_id!, editedCategory);
 
         setEditedCategory(null);
         setToastVariant("success");
@@ -159,6 +139,7 @@ const CategoryManagement: React.FC = () => {
             : category
         )
       );
+      setFilteredCategories(applySort(categories));
     }
     setEditedCategory(null);
     setOriginalCategory(null);
@@ -173,12 +154,9 @@ const CategoryManagement: React.FC = () => {
         const userConfirmed = window.confirm(
           "You have unsaved changes. Do you want to discard them?"
         );
-        if (!userConfirmed) {
-          return;
-        }
+        if (!userConfirmed) return;
       }
     }
-
     setOriginalCategory({ ...category });
     setEditedCategory(category);
   };
@@ -190,8 +168,6 @@ const CategoryManagement: React.FC = () => {
       setShowToast(true);
       return;
     }
-
-    setCategoryToDelete(category);
     setConfirmationModalTitle("Delete Category");
     setConfirmationModalMessage(
       `Are you sure you want to delete the category "${category.category_name}"?`
@@ -211,14 +187,12 @@ const CategoryManagement: React.FC = () => {
     try {
       setShowConfirmDialog(false);
       const deletionSuccess = await deleteCategory(category.category_id!);
-
       if (deletionSuccess) {
         const updatedCategories = categories.filter(
           (item) => item.category_id !== category.category_id
         );
         setCategories(updatedCategories);
-        setFilteredCategories(updatedCategories);
-
+        setFilteredCategories(applySort(updatedCategories));
         setToastVariant("success");
         setToastMessage("Category deleted successfully!");
         setShowToast(true);
@@ -232,14 +206,12 @@ const CategoryManagement: React.FC = () => {
       setToastMessage(
         error.message || "Failed to delete category. Please try again."
       );
-
       setShowToast(true);
     }
   };
 
   const handleDeleteCancel = () => {
     setShowConfirmDialog(false);
-    setCategoryToDelete(null);
   };
 
   const handleCategorySubmit = async () => {
@@ -260,12 +232,14 @@ const CategoryManagement: React.FC = () => {
       );
 
       if (!existingCategory) {
-        const newCategoryObj = await addCategory({
+        await addCategory({
           category_name: trimmedCategory,
           category_description: trimmedDescription,
         });
 
-        await fetchCategories();
+        const updatedList = await getCategories();
+        setCategories(updatedList);
+        setFilteredCategories(applySort(updatedList));
       }
     } catch (error: any) {
       setToastVariant("danger");
