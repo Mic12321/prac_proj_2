@@ -237,8 +237,20 @@ const CategoryManagement: React.FC = () => {
           category_description: trimmedDescription,
         });
 
-        const updatedList = await getCategories();
-        setCategories(updatedList);
+        if (addSuccess) {
+          setToastVariant("success");
+          setToastMessage("Category added successfully!");
+          setShowToast(true);
+
+          const updatedList = await getCategories();
+          setCategories(updatedList);
+        }
+      } else {
+        setToastVariant("danger");
+        setToastMessage(
+          `Category "${trimmedCategory}" already exists. Please choose a different name.`
+        );
+        setShowToast(true);
       }
     } catch (error: any) {
       setToastVariant("danger");
