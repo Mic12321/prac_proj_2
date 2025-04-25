@@ -131,19 +131,21 @@ const SearchItem: React.FC = () => {
         return;
       }
       try {
-        const updatedItems = items.map((item) =>
-          item.item_id === editedItem.item_id
-            ? { ...item, ...editedItem }
-            : item
-        );
-        setItems(updatedItems);
-
         const updatedItem = await updateItem(editedItem.item_id!, editedItem);
 
-        setEditedItem(null);
-        setToastVariant("success");
-        setToastMessage("Item updated successfully!");
-        setShowToast(true);
+        if (updatedItem) {
+          const updatedItems = items.map((item) =>
+            item.item_id === editedItem.item_id
+              ? { ...item, ...editedItem }
+              : item
+          );
+          setItems(updatedItems);
+
+          setEditedItem(null);
+          setToastVariant("success");
+          setToastMessage("Item updated successfully!");
+          setShowToast(true);
+        }
       } catch (error: any) {
         setToastVariant("danger");
         setToastMessage(

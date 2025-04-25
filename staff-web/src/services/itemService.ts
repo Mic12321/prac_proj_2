@@ -15,97 +15,170 @@ export interface Item {
 }
 
 export const addItem = async (item: Omit<Item, "item_id">): Promise<Item> => {
-  const response = await fetch(API_ROUTES.ITEMS, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(item),
-  });
+  try {
+    const response = await fetch(API_ROUTES.ITEMS, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(item),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to add item");
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error adding item:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to add item: Server is unreachable.");
+    }
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to add item");
+    throw error;
   }
-
-  const createdItem: Item = await response.json();
-  return createdItem;
 };
 
 export const updateItem = async (id: number, itemData: Item): Promise<Item> => {
-  const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(itemData),
-  });
+  try {
+    const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(itemData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error updating item");
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error updating item:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to update item: Server is unreachable.");
+    }
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error updating item");
+    throw error;
   }
-
-  return await response.json();
 };
 
 export const getItemsForSale = async (): Promise<Item[]> => {
-  const response = await fetch(`${API_ROUTES.ITEMS}/for-sale`);
+  try {
+    const response = await fetch(`${API_ROUTES.ITEMS}/for-sale`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error fetching items for sale");
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error getting items for sale:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to get items for sale: Server is unreachable.");
+    }
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error fetching items for sale");
+    throw error;
   }
-  return await response.json();
 };
 
 export const getAllItems = async (): Promise<Item[]> => {
-  const response = await fetch(API_ROUTES.ITEMS);
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error fetching all items");
-  }
-
   try {
-    const data = await response.json();
-    return data;
-  } catch (errorData: any) {
-    throw new Error(errorData.error || "Failed to parse JSON from the server.");
+    const response = await fetch(API_ROUTES.ITEMS);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error fetching all items");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error getting all items:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to get all items: Server is unreachable.");
+    }
+    throw error;
   }
 };
 
 export const getItemById = async (id: number): Promise<Item> => {
-  const response = await fetch(`${API_ROUTES.ITEMS}/${id}`);
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error fetching items");
+  try {
+    const response = await fetch(`${API_ROUTES.ITEMS}/${id}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error fetching items");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error getting item by id:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to get item by id: Server is unreachable.");
+    }
+    throw error;
   }
-  return await response.json();
 };
 
 export const deleteItem = async (id: number): Promise<{ message: string }> => {
-  const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
-    method: "DELETE",
-  });
+  try {
+    const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
+      method: "DELETE",
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error deleting item");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error deleting item");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error deleting item:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to delete item: Server is unreachable.");
+    }
+    throw error;
   }
-
-  return await response.json();
 };
 
 export const getItemsByCategoryId = async (
   categoryId: number
 ): Promise<Item[]> => {
-  const response = await fetch(`${API_ROUTES.ITEMS}/by-category/${categoryId}`);
+  try {
+    const response = await fetch(
+      `${API_ROUTES.ITEMS}/by-category/${categoryId}`
+    );
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error fetching items by category");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error fetching items by category");
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error getting items by category id:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error(
+        "Failed to get items by category id: Server is unreachable."
+      );
+    }
+    throw error;
   }
-
-  return await response.json();
 };
