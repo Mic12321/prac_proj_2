@@ -11,6 +11,7 @@ import CategoryTable from "../components/CategoryTable";
 import AddCategoryModal from "../components/AddCategoryModal";
 import { useNavigate } from "react-router";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { applySort } from "../utils/sorting";
 
 const CategoryManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -46,17 +47,6 @@ const CategoryManagement: React.FC = () => {
   const [confirmationModalMessage, setConfirmationModalMessage] =
     useState<string>("");
 
-  const applySort = (data: Category[]): Category[] => {
-    if (!sortConfig) return data;
-    return [...data].sort((a, b) => {
-      if (a[sortConfig.key]! < b[sortConfig.key]!)
-        return sortConfig.direction === "asc" ? -1 : 1;
-      if (a[sortConfig.key]! > b[sortConfig.key]!)
-        return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  };
-
   const fetchCategories = useCallback(async () => {
     try {
       const categoriesData = await getCategories();
@@ -67,7 +57,7 @@ const CategoryManagement: React.FC = () => {
       setToastMessage("Failed to fetch data. Please try again.");
       setShowToast(true);
     }
-  }, [sortConfig]);
+  }, []);
 
   useEffect(() => {
     fetchCategories();
@@ -84,17 +74,12 @@ const CategoryManagement: React.FC = () => {
   }, []);
 
   const handleSort = (key: keyof Category) => {
-    let direction = "asc";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig?.key === key && sortConfig.direction === "asc")
       direction = "desc";
-    }
-    const newSortConfig = { key, direction };
-    setSortConfig(newSortConfig);
-    setFilteredCategories(applySort(categories));
+
+    setSortConfig({ key, direction });
+    setFilteredCategories(applySort(categories, key, direction));
   };
 
   const handleSaveCategory = async () => {
@@ -106,20 +91,31 @@ const CategoryManagement: React.FC = () => {
         return;
       }
       try {
-        const updatedCategories = categories.map((category) =>
-          category.category_id === editedCategory.category_id
-            ? { ...category, ...editedCategory }
-            : category
+        const updateSuccess = await updateCategory(
+          editedCategory.category_id!,
+          editedCategory
         );
-        setCategories(updatedCategories);
-        setFilteredCategories(applySort(updatedCategories));
 
-        await updateCategory(editedCategory.category_id!, editedCategory);
+        if (updateSuccess) {
+          const updatedCategories = categories.map((category) =>
+            category.category_id === editedCategory.category_id
+              ? { ...category, ...editedCategory }
+              : category
+          );
+          setCategories(updatedCategories);
+          setFilteredCategories(
+            applySort(
+              updatedCategories,
+              sortConfig?.key,
+              sortConfig?.direction as "asc" | "desc"
+            )
+          );
 
-        setEditedCategory(null);
-        setToastVariant("success");
-        setToastMessage("Category updated successfully!");
-        setShowToast(true);
+          setEditedCategory(null);
+          setToastVariant("success");
+          setToastMessage("Category updated successfully!");
+          setShowToast(true);
+        }
       } catch (error: any) {
         setToastVariant("danger");
         setToastMessage(
@@ -139,7 +135,13 @@ const CategoryManagement: React.FC = () => {
             : category
         )
       );
-      setFilteredCategories(applySort(categories));
+      setFilteredCategories(
+        applySort(
+          categories,
+          sortConfig?.key,
+          sortConfig?.direction as "asc" | "desc"
+        )
+      );
     }
     setEditedCategory(null);
     setOriginalCategory(null);
@@ -192,7 +194,14 @@ const CategoryManagement: React.FC = () => {
           (item) => item.category_id !== category.category_id
         );
         setCategories(updatedCategories);
-        setFilteredCategories(applySort(updatedCategories));
+        setFilteredCategories(
+          applySort(
+            updatedCategories,
+            sortConfig?.key,
+            sortConfig?.direction as "asc" | "desc"
+          )
+        );
+
         setToastVariant("success");
         setToastMessage("Category deleted successfully!");
         setShowToast(true);
@@ -232,14 +241,20 @@ const CategoryManagement: React.FC = () => {
       );
 
       if (!existingCategory) {
-        await addCategory({
+        const addSuccess = await addCategory({
           category_name: trimmedCategory,
           category_description: trimmedDescription,
         });
 
         const updatedList = await getCategories();
         setCategories(updatedList);
-        setFilteredCategories(applySort(updatedList));
+        setFilteredCategories(
+          applySort(
+            updatedList,
+            sortConfig?.key,
+            sortConfig?.direction as "asc" | "desc"
+          )
+        );
       }
     } catch (error: any) {
       setToastVariant("danger");
