@@ -51,7 +51,6 @@ const CategoryManagement: React.FC = () => {
     try {
       const categoriesData = await getCategories();
       setCategories(categoriesData);
-      setFilteredCategories(applySort(categoriesData));
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
@@ -62,6 +61,20 @@ const CategoryManagement: React.FC = () => {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  useEffect(() => {
+    if (sortConfig && sortConfig.key) {
+      setFilteredCategories(
+        applySort(
+          [...categories],
+          sortConfig?.key,
+          sortConfig?.direction as "asc" | "desc"
+        )
+      );
+    } else {
+      setFilteredCategories(categories);
+    }
+  }, [categories, sortConfig]);
 
   useEffect(() => {
     const message = sessionStorage.getItem("successMessage");
@@ -79,7 +92,6 @@ const CategoryManagement: React.FC = () => {
       direction = "desc";
 
     setSortConfig({ key, direction });
-    setFilteredCategories(applySort(categories, key, direction));
   };
 
   const handleSaveCategory = async () => {
@@ -103,13 +115,6 @@ const CategoryManagement: React.FC = () => {
               : category
           );
           setCategories(updatedCategories);
-          setFilteredCategories(
-            applySort(
-              updatedCategories,
-              sortConfig?.key,
-              sortConfig?.direction as "asc" | "desc"
-            )
-          );
 
           setEditedCategory(null);
           setToastVariant("success");
@@ -133,13 +138,6 @@ const CategoryManagement: React.FC = () => {
           category.category_id === originalCategory.category_id
             ? originalCategory
             : category
-        )
-      );
-      setFilteredCategories(
-        applySort(
-          categories,
-          sortConfig?.key,
-          sortConfig?.direction as "asc" | "desc"
         )
       );
     }
@@ -194,13 +192,6 @@ const CategoryManagement: React.FC = () => {
           (item) => item.category_id !== category.category_id
         );
         setCategories(updatedCategories);
-        setFilteredCategories(
-          applySort(
-            updatedCategories,
-            sortConfig?.key,
-            sortConfig?.direction as "asc" | "desc"
-          )
-        );
 
         setToastVariant("success");
         setToastMessage("Category deleted successfully!");
@@ -248,13 +239,6 @@ const CategoryManagement: React.FC = () => {
 
         const updatedList = await getCategories();
         setCategories(updatedList);
-        setFilteredCategories(
-          applySort(
-            updatedList,
-            sortConfig?.key,
-            sortConfig?.direction as "asc" | "desc"
-          )
-        );
       }
     } catch (error: any) {
       setToastVariant("danger");
