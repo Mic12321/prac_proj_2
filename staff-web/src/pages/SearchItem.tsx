@@ -6,6 +6,7 @@ import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
+import { applySort } from "../utils/sorting";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const SearchItem: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Item;
-    direction: string;
+    direction: "asc" | "desc";
   } | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
 
@@ -52,7 +53,6 @@ const SearchItem: React.FC = () => {
       }));
 
       setItems(updatedItems);
-      setFilteredItems(updatedItems);
     } catch (error) {
       setToastVariant("danger");
       setToastMessage("Failed to fetch data. Please try again.");
@@ -86,8 +86,18 @@ const SearchItem: React.FC = () => {
       return matchesSearch && matchesCategory;
     });
 
-    setFilteredItems(filtered);
-  }, [searchQuery, items, selectedCategories]);
+    if (sortConfig && sortConfig.key) {
+      setFilteredItems(
+        applySort(
+          [...filtered],
+          sortConfig.key,
+          sortConfig.direction as "asc" | "desc"
+        )
+      );
+    } else {
+      setFilteredItems(filtered);
+    }
+  }, [searchQuery, items, selectedCategories, sortConfig]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -127,7 +137,6 @@ const SearchItem: React.FC = () => {
             : item
         );
         setItems(updatedItems);
-        setFilteredItems(updatedItems);
 
         const updatedItem = await updateItem(editedItem.item_id!, editedItem);
 
@@ -158,22 +167,11 @@ const SearchItem: React.FC = () => {
   };
 
   const handleSort = (key: keyof Item) => {
-    let direction = "asc";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig?.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     }
 
-    const sortedItems = [...filteredItems].sort((a, b) => {
-      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
-      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setFilteredItems(sortedItems);
     setSortConfig({ key, direction });
   };
 
