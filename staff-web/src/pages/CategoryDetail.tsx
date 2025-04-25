@@ -118,15 +118,19 @@ const CategoryDetail: React.FC = () => {
     try {
       const updatedItem = await updateItem(editedItem.item_id!, editedItem);
 
-      const updatedItems = items.map((item) =>
-        item.item_id === editedItem.item_id ? { ...item, ...editedItem } : item
-      );
+      if (updatedItem) {
+        const updatedItems = items.map((item) =>
+          item.item_id === editedItem.item_id
+            ? { ...item, ...editedItem }
+            : item
+        );
 
-      setItems(updatedItems);
-      setEditedItem(null);
-      setToastVariant("success");
-      setToastMessage("Item updated successfully!");
-      setShowToast(true);
+        setItems(updatedItems);
+        setEditedItem(null);
+        setToastVariant("success");
+        setToastMessage("Item updated successfully!");
+        setShowToast(true);
+      }
     } catch (error: any) {
       setToastVariant("danger");
       setToastMessage(error.message || "Failed to update item.");
@@ -174,10 +178,13 @@ const CategoryDetail: React.FC = () => {
 
   const handleSubmit = async (data: Category) => {
     try {
-      await updateCategory(data.category_id!, data);
-      setToastVariant("success");
-      setToastMessage("Category updated successfully!");
-      setShowToast(true);
+      const updateSuccess = await updateCategory(data.category_id!, data);
+
+      if (updateSuccess) {
+        setToastVariant("success");
+        setToastMessage("Category updated successfully!");
+        setShowToast(true);
+      }
     } catch (error: any) {
       setToastVariant("danger");
       setToastMessage(error.message || "Error updating category.");
@@ -203,11 +210,14 @@ const CategoryDetail: React.FC = () => {
 
   const handleDeleteConfirmItem = async (id: number) => {
     try {
-      await deleteItem(id);
-      setItems((prev) => prev.filter((item) => item.item_id !== id));
-      setToastVariant("success");
-      setToastMessage("Item deleted successfully!");
-      setShowToast(true);
+      const deleteSuccess = await deleteItem(id);
+
+      if (deleteSuccess) {
+        setItems((prev) => prev.filter((item) => item.item_id !== id));
+        setToastVariant("success");
+        setToastMessage("Item deleted successfully!");
+        setShowToast(true);
+      }
     } catch (error: any) {
       setToastVariant("danger");
       setToastMessage(error.message || "Error deleting item.");
@@ -219,12 +229,15 @@ const CategoryDetail: React.FC = () => {
 
   const handleDeleteConfirmCategory = async () => {
     try {
-      await deleteCategory(category!.category_id!);
-      sessionStorage.setItem(
-        "successMessage",
-        "Category deleted successfully!"
-      );
-      navigate("/category-management");
+      const deleteSuccess = await deleteCategory(category!.category_id!);
+
+      if (deleteSuccess) {
+        sessionStorage.setItem(
+          "successMessage",
+          "Category deleted successfully!"
+        );
+        navigate("/category-management");
+      }
     } catch (error: any) {
       setToastVariant("danger");
       setToastMessage(error.message || "Error deleting category.");
