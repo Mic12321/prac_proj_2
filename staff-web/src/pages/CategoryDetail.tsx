@@ -24,13 +24,13 @@ const CategoryDetail: React.FC = () => {
 
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<Item[]>([]);
-  const [sortedItems, setSortedItems] = useState<Item[]>([]); // NEW
+  const [sortedItems, setSortedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Item;
-    direction: string;
+    direction: "asc" | "desc";
   } | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");

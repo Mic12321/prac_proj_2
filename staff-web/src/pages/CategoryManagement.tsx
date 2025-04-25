@@ -26,7 +26,7 @@ const CategoryManagement: React.FC = () => {
 
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Category;
-    direction: string;
+    direction: "asc" | "desc";
   } | null>(null);
 
   const [editedCategory, setEditedCategory] = useState<Category | null>(null);
