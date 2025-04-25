@@ -15,8 +15,15 @@ export const getCategories = async (): Promise<Category[]> => {
       throw new Error(errorData.error || "Failed to fetch categories");
     }
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching categories:", error);
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to get categories: Server is unreachable.");
+    }
+
     throw error;
   }
 };
@@ -31,9 +38,17 @@ export const getCategoryById = async (
       throw new Error(errorData.error || "Category not found");
     }
     return await response.json();
-  } catch (error) {
-    console.error("Error fetching category:", error);
-    return null;
+  } catch (error: any) {
+    console.error("Error fetching category by id:", error);
+
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to get category by id: Server is unreachable.");
+    }
+
+    throw error;
   }
 };
 
@@ -72,18 +87,31 @@ export const updateCategory = async (
   category_id: number,
   category: Category
 ): Promise<Category> => {
-  const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(category),
-  });
+  try {
+    const response = await fetch(`${API_ROUTES.CATEGORY}/${category_id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(category),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Error updating items");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error updating items");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error updating category:", error);
+
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to update category: Server is unreachable.");
+    }
+
+    throw error;
   }
-
-  return await response.json();
 };
 
 export const deleteCategory = async (category_id: number): Promise<boolean> => {
@@ -93,8 +121,16 @@ export const deleteCategory = async (category_id: number): Promise<boolean> => {
     });
 
     return response.ok;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting category:", error);
-    return false;
+
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.name === "TypeError"
+    ) {
+      throw new Error("Failed to delete category: Server is unreachable.");
+    }
+
+    throw error;
   }
 };
