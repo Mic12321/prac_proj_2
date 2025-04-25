@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   getCategoryById,
   Category,
@@ -16,19 +16,15 @@ import ItemTable from "../components/ItemTable";
 import ToastNotification from "../components/ToastNotification";
 import ConfirmationModal from "../components/ConfirmationModal";
 import CategoryForm from "../components/CategoryForm";
+import { applySort } from "../utils/sorting";
 
 const CategoryDetail: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
 
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastVariant, setToastVariant] = useState<
-    "success" | "danger" | "info"
-  >("success");
-
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<Item[]>([]);
+  const [sortedItems, setSortedItems] = useState<Item[]>([]); // NEW
   const [loading, setLoading] = useState(true);
   const [editedItem, setEditedItem] = useState<Item | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
@@ -36,6 +32,11 @@ const CategoryDetail: React.FC = () => {
     key: keyof Item;
     direction: string;
   } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "danger" | "info"
+  >("success");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(true);
@@ -73,6 +74,20 @@ const CategoryDetail: React.FC = () => {
     fetchData();
   }, [categoryId]);
 
+  useEffect(() => {
+    if (sortConfig && sortConfig.key) {
+      setSortedItems(
+        applySort(
+          [...items],
+          sortConfig.key,
+          sortConfig.direction as "asc" | "desc"
+        )
+      );
+    } else {
+      setSortedItems(items);
+    }
+  }, [items, sortConfig]);
+
   const handleEditItem = (item: Item) => {
     if (editedItem && editedItem.item_id !== item.item_id) {
       if (
@@ -82,9 +97,7 @@ const CategoryDetail: React.FC = () => {
         const userConfirmed = window.confirm(
           "You have unsaved changes. Do you want to discard them?"
         );
-        if (!userConfirmed) {
-          return;
-        }
+        if (!userConfirmed) return;
       }
     }
 
@@ -93,41 +106,38 @@ const CategoryDetail: React.FC = () => {
   };
 
   const handleSaveItem = async () => {
-    if (editedItem) {
-      if (JSON.stringify(editedItem) === JSON.stringify(originalItem)) {
-        setToastVariant("info");
-        setToastMessage("No changes were made to the item.");
-        setShowToast(true);
-        return;
-      }
-      try {
-        const updatedItems = items.map((item) =>
-          item.item_id === editedItem.item_id
-            ? { ...item, ...editedItem }
-            : item
-        );
-        setItems(updatedItems);
+    if (!editedItem) return;
 
-        const updatedItem = await updateItem(editedItem.item_id!, editedItem);
+    if (JSON.stringify(editedItem) === JSON.stringify(originalItem)) {
+      setToastVariant("info");
+      setToastMessage("No changes were made to the item.");
+      setShowToast(true);
+      return;
+    }
 
-        setEditedItem(null);
-        setToastVariant("success");
-        setToastMessage("Item updated successfully!");
-        setShowToast(true);
-      } catch (error: any) {
-        setToastVariant("danger");
-        setToastMessage(
-          error.message || "Failed to update item. Please try again."
-        );
-        setShowToast(true);
-      }
+    try {
+      const updatedItem = await updateItem(editedItem.item_id!, editedItem);
+
+      const updatedItems = items.map((item) =>
+        item.item_id === editedItem.item_id ? { ...item, ...editedItem } : item
+      );
+
+      setItems(updatedItems);
+      setEditedItem(null);
+      setToastVariant("success");
+      setToastMessage("Item updated successfully!");
+      setShowToast(true);
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Failed to update item.");
+      setShowToast(true);
     }
   };
 
   const handleCancelEdit = () => {
     if (originalItem) {
-      setItems((prevItems) =>
-        prevItems.map((item) =>
+      setItems((prev) =>
+        prev.map((item) =>
           item.item_id === originalItem.item_id ? originalItem : item
         )
       );
@@ -137,18 +147,12 @@ const CategoryDetail: React.FC = () => {
   };
 
   const handleSort = (key: keyof Item) => {
-    let direction = "asc";
+    let direction: "asc" | "desc" = "asc";
     if (sortConfig?.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     }
+
     setSortConfig({ key, direction });
-    setItems((prevItems) =>
-      [...prevItems].sort((a, b) => {
-        if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
-        if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
-        return 0;
-      })
-    );
   };
 
   const handleDeleteCancel = () => {
@@ -168,41 +172,23 @@ const CategoryDetail: React.FC = () => {
     navigate(`/item-detail/${id}`);
   };
 
-  if (loading) {
-    return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" role="status" />
-        <p>Loading category details...</p>
-      </div>
-    );
-  }
-
-  if (!category) {
-    return <p>Category not found.</p>;
-  }
-
   const handleSubmit = async (data: Category) => {
     try {
       await updateCategory(data.category_id!, data);
-
-      setToastMessage("Category updated successfully!");
       setToastVariant("success");
+      setToastMessage("Category updated successfully!");
       setShowToast(true);
     } catch (error: any) {
       setToastVariant("danger");
-      setToastMessage(
-        error.message || "An error occurred while updating the category."
-      );
+      setToastMessage(error.message || "Error updating category.");
       setShowToast(true);
     }
   };
 
   const handleDeleteCategory = () => {
-    if (items.length !== 0) {
+    if (items.length > 0) {
       setToastVariant("danger");
-      setToastMessage(
-        "Cannot delete category with linked items. Please remove items first."
-      );
+      setToastMessage("Cannot delete category with linked items.");
       setShowToast(true);
       return;
     }
@@ -218,9 +204,9 @@ const CategoryDetail: React.FC = () => {
   const handleDeleteConfirmItem = async (id: number) => {
     try {
       await deleteItem(id);
-      setItems((prevItems) => prevItems.filter((item) => item.item_id !== id));
-      setToastMessage("Item deleted successfully!");
+      setItems((prev) => prev.filter((item) => item.item_id !== id));
       setToastVariant("success");
+      setToastMessage("Item deleted successfully!");
       setShowToast(true);
     } catch (error: any) {
       setToastVariant("danger");
@@ -233,16 +219,11 @@ const CategoryDetail: React.FC = () => {
 
   const handleDeleteConfirmCategory = async () => {
     try {
-      await deleteCategory(category.category_id!);
-
-      setToastMessage("Category deleted successfully!");
-      setToastVariant("success");
-      setShowToast(true);
+      await deleteCategory(category!.category_id!);
       sessionStorage.setItem(
         "successMessage",
         "Category deleted successfully!"
       );
-
       navigate("/category-management");
     } catch (error: any) {
       setToastVariant("danger");
@@ -251,6 +232,19 @@ const CategoryDetail: React.FC = () => {
     }
     setShowConfirmDialog(false);
   };
+
+  if (loading) {
+    return (
+      <div className="text-center mt-5">
+        <div className="spinner-border text-primary" role="status" />
+        <p>Loading category details...</p>
+      </div>
+    );
+  }
+
+  if (!category) {
+    return <p>Category not found.</p>;
+  }
 
   return (
     <div className="container mt-4">
@@ -262,14 +256,13 @@ const CategoryDetail: React.FC = () => {
         onDelete={handleDeleteCategory}
         hasItems={items.length !== 0}
       />
+
       <div className="d-flex justify-content-between align-items-center mt-4">
         <h4>Items ({items.length})</h4>
-        {/* <button className="btn btn-success mt-4 mb-4" onClick={() => {}}>
-          Create a new item belongs to this category
-        </button> */}
       </div>
+
       <ItemTable
-        items={items}
+        items={sortedItems}
         editedItem={editedItem}
         sortConfig={sortConfig}
         onEditItem={handleEditItem}
@@ -283,6 +276,7 @@ const CategoryDetail: React.FC = () => {
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}
       />
+
       <ConfirmationModal
         show={showConfirmDialog}
         onHide={handleDeleteCancel}
@@ -294,6 +288,7 @@ const CategoryDetail: React.FC = () => {
         cancelButtonClass="btn btn-secondary"
         confirmButtonClass="btn btn-danger"
       />
+
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
