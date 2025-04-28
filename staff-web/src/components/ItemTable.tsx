@@ -91,7 +91,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
                         prev
                           ? {
                               ...prev,
-                              stock_quantity: parseInt(e.target.value) || 0,
+                              stock_quantity: parseFloat(e.target.value) || 0,
                             }
                           : prev
                       )
@@ -137,9 +137,18 @@ const ItemTable: React.FC<ItemTableProps> = ({
               <>
                 <td>{item.item_name}</td>
                 <td>{item.category_name}</td>
-                <td>{item.stock_quantity}</td>
+                <td>
+                  {typeof item.stock_quantity === "number"
+                    ? item.stock_quantity.toFixed(2)
+                    : item.stock_quantity}
+                </td>
                 <td>{item.unit_name}</td>
-                <td>${item.price}</td>
+                <td>
+                  $
+                  {typeof item.price === "number"
+                    ? item.price.toFixed(2)
+                    : item.price}
+                </td>
                 <td>
                   <div className="d-flex gap-2">
                     {isEditing ? (
