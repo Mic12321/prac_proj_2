@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { getAllItems, updateItem, Item } from "../services/itemService";
+import {
+  getAllItems,
+  updateItem,
+  Item,
+  deleteItem,
+} from "../services/itemService";
 import { getCategories, Category } from "../services/categoryService";
 import NavigateButton from "../components/NavigateButton";
 import ToastNotification from "../components/ToastNotification";
 import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
 import { applySort } from "../utils/sorting";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const SearchItem: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +33,14 @@ const SearchItem: React.FC = () => {
   } | null>(null);
   const [originalItem, setOriginalItem] = useState<Item | null>(null);
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(true);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmationModalTitle, setConfirmationModalTitle] =
+    useState<string>("");
+  const [confirmationModalMessage, setConfirmationModalMessage] =
+    useState<string>("");
 
   const customClassCategoryFilterDropdown = "ms-2";
 
@@ -183,6 +196,38 @@ const SearchItem: React.FC = () => {
     );
   }, [categories, items]);
 
+  const handleDeleteCancel = () => {
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
+  };
+
+  const handleRemoveItem = (item: Item) => {
+    setItemToDelete(item.item_id!);
+    setConfirmationModalTitle("Delete Item");
+    setConfirmationModalMessage(`Are you sure you want to delete this item?`);
+    setConfirmAction(() => () => handleDeleteConfirmItem(item.item_id!));
+    setShowConfirmDialog(true);
+  };
+
+  const handleDeleteConfirmItem = async (id: number) => {
+    try {
+      const deleteSuccess = await deleteItem(id);
+
+      if (deleteSuccess) {
+        setItems((prev) => prev.filter((item) => item.item_id !== id));
+        setToastVariant("success");
+        setToastMessage("Item deleted successfully!");
+        setShowToast(true);
+      }
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Error deleting item.");
+      setShowToast(true);
+    }
+    setShowConfirmDialog(false);
+    setItemToDelete(null);
+  };
+
   return (
     <div className="container mt-4">
       {/* <NavigateButton
@@ -212,9 +257,22 @@ const SearchItem: React.FC = () => {
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
         isEditing={isEditing}
         onSelectItem={() => {}}
-        showRemoveButton={false}
-        onRemoveItem={() => {}}
+        showRemoveButton={true}
+        onRemoveItem={handleRemoveItem}
       />
+
+      <ConfirmationModal
+        show={showConfirmDialog}
+        onHide={handleDeleteCancel}
+        onConfirm={confirmAction ?? (() => {})}
+        title={confirmationModalTitle}
+        message={confirmationModalMessage}
+        cancelButtonLabel="No, Cancel"
+        confirmButtonLabel="Yes, Delete"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-danger"
+      />
+
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
