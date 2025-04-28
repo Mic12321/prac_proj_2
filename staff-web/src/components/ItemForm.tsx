@@ -212,7 +212,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="stock_quantity"
           className="form-control"
-          value={formData.stock_quantity}
+          value={formData.stock_quantity.toFixed(2)}
           onChange={handleChange}
           required
         />
@@ -235,7 +235,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="low_stock_quantity"
           className="form-control"
-          value={formData.low_stock_quantity}
+          value={formData.low_stock_quantity.toFixed(2)}
           onChange={handleChange}
         />
       </div>
@@ -246,7 +246,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="price"
           className="form-control"
-          value={formData.price}
+          value={formData.price.toFixed(2)}
           onChange={handleChange}
           required
         />
