@@ -28,10 +28,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [formData, setFormData] = useState<Item>({
     item_name: "",
     item_description: "",
-    stock_quantity: 0,
+    stock_quantity: 0.0,
     unit_name: "",
-    low_stock_quantity: 0,
-    price: 0,
+    low_stock_quantity: 0.0,
+    price: 0.0,
     category_id: 0,
     for_sale: true,
     picture: null,
@@ -99,7 +99,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
     if (type === "number") {
       newValue = parseFloat(value);
-      newValue = newValue.toFixed(2);
+      // newValue = newValue.toFixed(2);
+      if (isNaN(newValue)) {
+        newValue = 0;
+      }
     } else if (name === "for_sale") {
       newValue = value === "true";
     }
@@ -212,7 +215,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="stock_quantity"
           className="form-control"
-          value={formData.stock_quantity.toFixed(2)}
+          value={
+            formData.stock_quantity !== null &&
+            formData.stock_quantity !== undefined
+              ? Number(formData.stock_quantity).toFixed(2)
+              : ""
+          }
           onChange={handleChange}
           required
         />
@@ -235,7 +243,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="low_stock_quantity"
           className="form-control"
-          value={formData.low_stock_quantity.toFixed(2)}
+          value={
+            formData.low_stock_quantity !== null &&
+            formData.low_stock_quantity !== undefined
+              ? Number(formData.low_stock_quantity).toFixed(2)
+              : ""
+          }
           onChange={handleChange}
         />
       </div>
@@ -246,7 +259,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
           type="number"
           name="price"
           className="form-control"
-          value={formData.price.toFixed(2)}
+          value={
+            formData.price !== null && formData.price !== undefined
+              ? Number(formData.price).toFixed(2)
+              : ""
+          }
           onChange={handleChange}
           required
         />
