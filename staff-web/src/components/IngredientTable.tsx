@@ -25,11 +25,9 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
   const [localIngredients, setLocalIngredients] =
     useState<Ingredient[]>(ingredients);
 
-  // useEffect(() => {
-  //   if (!isEditing) {
-  //     setLocalIngredients(ingredients); // reset temp copy when not editing
-  //   }
-  // }, [isEditing, ingredients]);
+  useEffect(() => {
+    setLocalIngredients(ingredients);
+  }, [ingredients]);
 
   const handleInputChange = (
     index: number,
@@ -45,7 +43,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
   };
 
   const handleSave = () => {
-    onSave(localIngredients); // Send changes back to parent
+    onSave(localIngredients);
   };
 
   return (
@@ -61,46 +59,90 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
         <tbody>
           {localIngredients.map((ingredient, index) => (
             <tr key={index}>
-              {mode === "edit" ? (
-                <>
-                  <td>
-                    <input
-                      type="text"
-                      value={ingredient.item_name}
-                      onChange={(e) =>
-                        handleInputChange(index, "item_name", e.target.value)
-                      }
-                      className="form-control"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={ingredient.quantity}
-                      onChange={(e) =>
-                        handleInputChange(index, "quantity", e.target.value)
-                      }
-                      className="form-control"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={ingredient.unit_name}
-                      onChange={(e) =>
-                        handleInputChange(index, "unit_name", e.target.value)
-                      }
-                      className="form-control"
-                    />
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td>{ingredient.item_name}</td>
-                  <td>{ingredient.quantity}</td>
-                  <td>{ingredient.unit_name}</td>
-                </>
-              )}
+              {(() => {
+                switch (mode) {
+                  case "edit":
+                    return (
+                      <>
+                        <td>
+                          <input
+                            type="text"
+                            value={ingredient.item_name}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "item_name",
+                                e.target.value
+                              )
+                            }
+                            className="form-control"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            value={ingredient.quantity}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "quantity",
+                                e.target.value
+                              )
+                            }
+                            className="form-control"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            value={ingredient.unit_name}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "unit_name",
+                                e.target.value
+                              )
+                            }
+                            className="form-control"
+                          />
+                        </td>
+                        {/* <td>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-success btn-sm"
+                              onClick={onSaveItem}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={onCancelEdit}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </td> */}
+                      </>
+                    );
+
+                  case "display":
+                    return (
+                      <>
+                        <td>{ingredient.item_name}</td>
+                        <td>{ingredient.quantity}</td>
+                        <td>{ingredient.unit_name}</td>
+                      </>
+                    );
+                  default:
+                    return (
+                      <>
+                        <td>{ingredient.item_name}</td>
+                        <td>{ingredient.quantity}</td>
+                        <td>{ingredient.unit_name}</td>
+                      </>
+                    );
+                }
+              })()}
             </tr>
           ))}
         </tbody>

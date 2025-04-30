@@ -140,13 +140,13 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
     if (selectedItem) {
       onComplete(selectedItem, quantity);
 
-      setToastVariant("success");
-      setToastMessage(
-        `Added ${quantity} of ${selectedItem.item_name} ${
-          mode === "assign-ingredient" ? "as ingredient" : "as usage"
-        }.`
-      );
-      setShowToast(true);
+      // setToastVariant("success");
+      // setToastMessage(
+      //   `Added ${quantity} of ${selectedItem.item_name} ${
+      //     mode === "assign-ingredient" ? "as ingredient" : "as usage"
+      //   }.`
+      // );
+      // setShowToast(true);
 
       setSelectedItem(null);
       setQuantity(1);
@@ -276,7 +276,7 @@ const IngredientSelector: React.FC<IngredientSelectorProps> = ({
       items.some((item) => item.category_id === category.category_id)
     );
   }, [categories, items]);
-  console.log(addedItems);
+
   return (
     <div className="mt-3">
       <h4 className="mt-4">

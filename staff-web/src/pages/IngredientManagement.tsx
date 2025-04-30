@@ -26,21 +26,27 @@ const ItemsUsingIngredient: React.FC = () => {
     try {
       if (!item) return;
 
-      await createIngredient(item.item_id!, ingredient.item_id!, quantity);
-
-      setToastVariant("success");
-      setToastMessage(
-        `Successfully added ${quantity} of ${ingredient.item_name} as an ingredient.`
+      const createSuccess = await createIngredient(
+        item.item_id!,
+        ingredient.item_id!,
+        quantity
       );
-      setShowToast(true);
 
-      // const updatedIngredients = await getIngredients(item.item_id!);
-      // setIngredients(updatedIngredients);
+      if (createSuccess) {
+        setToastVariant("success");
+        setToastMessage(
+          `Successfully added ${quantity} of ${ingredient.item_name} as an ingredient.`
+        );
+        setShowToast(true);
 
-      // const updatedAvailableIngredients = await getAvailableIngredients(
-      //   item.item_id!
-      // );
-      // setAvailableIngredients(updatedAvailableIngredients);
+        const updatedIngredients = await getIngredients(item.item_id!);
+        setIngredients(updatedIngredients);
+
+        const updatedAvailableIngredients = await getAvailableIngredients(
+          item.item_id!
+        );
+        setAvailableIngredients(updatedAvailableIngredients);
+      }
     } catch (error: any) {
       setToastVariant("danger");
       setToastMessage(error.message || "Failed to add ingredient.");
