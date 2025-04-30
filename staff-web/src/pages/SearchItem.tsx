@@ -35,7 +35,7 @@ const SearchItem: React.FC = () => {
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(true);
+  const [mode, setmode] = useState<"edit" | "display">("edit");
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmationModalTitle, setConfirmationModalTitle] =
     useState<string>("");
@@ -255,7 +255,7 @@ const SearchItem: React.FC = () => {
         onSort={handleSort}
         setEditedItem={setEditedItem}
         navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
-        isEditing={isEditing}
+        mode={mode}
         onSelectItem={() => {}}
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}

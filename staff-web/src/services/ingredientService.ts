@@ -1,8 +1,8 @@
 import { API_ROUTES } from "../config/apiConfig";
 
 export interface Ingredient {
-  id: number;
-  name: string;
+  item_id: number;
+  item_name: string;
   quantity: number;
   unit_name: string;
 }
@@ -19,8 +19,9 @@ export const getIngredients = async (itemId: number) => {
     const data = await response.json();
 
     return data.map((ingredient: any) => ({
-      id: ingredient.ingredientItem.item_id,
-      name: ingredient.ingredientItem.item_name,
+      ...ingredient,
+      item_id: ingredient.ingredientItem.item_id,
+      item_name: ingredient.ingredientItem.item_name,
       quantity: ingredient.quantity,
       unit_name: ingredient.ingredientItem.unit_name,
     }));
@@ -47,8 +48,8 @@ export const getAvailableIngredients = async (itemId: number) => {
 
     return data.map((ingredient: any) => ({
       ...ingredient,
-      id: ingredient.item_id,
-      name: ingredient.item_name,
+      item_id: ingredient.item_id,
+      item_name: ingredient.item_name,
       quantity: ingredient.quantity,
       unit_name: ingredient.unit_name,
     }));
@@ -70,8 +71,8 @@ export const getIngredientsUsedIn = async (itemId: number) => {
     const data = await response.json();
 
     return data.map((ingredient: any) => ({
-      id: ingredient.item_id,
-      name: ingredient.itemToCreate.item_name,
+      item_id: ingredient.item_id,
+      item_name: ingredient.itemToCreate.item_name,
       quantity: ingredient.quantity,
       unit_name: ingredient.itemToCreate.unit_name,
     }));
@@ -79,4 +80,30 @@ export const getIngredientsUsedIn = async (itemId: number) => {
     console.error("Error fetching ingredients used in:", error);
     throw error;
   }
+};
+
+export const createIngredient = async (
+  itemToCreateId: number,
+  ingredientItemId: number,
+  quantity: number
+) => {
+  const response = await fetch(`${API_ROUTES.INGREDIENTS}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      itemToCreateId,
+      ingredientItemId,
+      quantity,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to create ingredient");
+  }
+
+  const data = await response.json();
+  return data;
 };

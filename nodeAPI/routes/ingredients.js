@@ -64,4 +64,25 @@ router.get("/:itemId", async (req, res) => {
   }
 });
 
+router.post("/", async (req, res) => {
+  const { itemToCreateId, ingredientItemId, quantity } = req.body;
+
+  if (!itemToCreateId || !ingredientItemId || !quantity) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  try {
+    const newIngredient = await Ingredient.create({
+      item_to_create_id: itemToCreateId,
+      ingredient_item_id: ingredientItemId,
+      quantity,
+    });
+
+    res.status(201).json(newIngredient);
+  } catch (error) {
+    console.error("Error creating ingredient:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

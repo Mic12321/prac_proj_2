@@ -3,7 +3,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { getCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
-import IngredientList from "./IngredientList";
+import IngredientTable from "./IngredientTable";
 import { useNavigate } from "react-router";
 import AddCategoryModal from "./AddCategoryModal";
 import IngredientSelector from "./IngredientSelector";
@@ -324,7 +324,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
       <div className="mt-4">
         <h4>Item Ingredients</h4>
         {itemIngredients.length > 0 ? (
-          <IngredientList ingredients={itemIngredients} />
+          <IngredientTable
+            ingredients={itemIngredients}
+            isEditing={false}
+            onSave={() => {}}
+            onCancel={() => {}}
+          />
         ) : (
           <p>No ingredients available for this item.</p>
         )}
@@ -340,7 +345,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
       <div className="mt-4">
         <h4>Items Using This Ingredient</h4>
         {itemIngredientsUsedIn.length > 0 ? (
-          <IngredientList ingredients={itemIngredientsUsedIn} />
+          <IngredientTable
+            ingredients={itemIngredientsUsedIn}
+            isEditing={false}
+            onSave={() => {}}
+            onCancel={() => {}}
+          />
         ) : (
           <p>No items used this ingredient.</p>
         )}

@@ -39,7 +39,7 @@ const CategoryDetail: React.FC = () => {
   >("success");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(true);
+  const [mode, setMode] = useState<"edit" | "display">("edit");
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmationModalTitle, setConfirmationModalTitle] =
     useState<string>("");
@@ -284,7 +284,7 @@ const CategoryDetail: React.FC = () => {
         onSort={handleSort}
         setEditedItem={setEditedItem}
         navigateToDetail={navigateToDetail}
-        isEditing={isEditing}
+        mode={mode}
         onSelectItem={() => {}}
         showRemoveButton={true}
         onRemoveItem={handleRemoveItem}

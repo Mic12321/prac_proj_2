@@ -4,14 +4,16 @@ import { getAllItems, getItemById, Item } from "../services/itemService";
 import IngredientSelector from "../components/IngredientSelector";
 import ToastNotification from "../components/ToastNotification";
 import {
+  createIngredient,
   getAvailableIngredients,
   getIngredients,
+  Ingredient,
 } from "../services/ingredientService";
 
 const ItemsUsingIngredient: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const [item, setItem] = useState<Item>();
-  const [ingredients, setIngredients] = useState<Item[]>([]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [availableIngredients, setAvailableIngredients] = useState<Item[]>([]);
 
   const [toastMessage, setToastMessage] = useState("");
@@ -20,8 +22,30 @@ const ItemsUsingIngredient: React.FC = () => {
     "success"
   );
 
-  const handleComplete = (ingredient: Item, quantity: number) => {
-    console.log("hi");
+  const handleComplete = async (ingredient: Item, quantity: number) => {
+    try {
+      if (!item) return;
+
+      await createIngredient(item.item_id!, ingredient.item_id!, quantity);
+
+      setToastVariant("success");
+      setToastMessage(
+        `Successfully added ${quantity} of ${ingredient.item_name} as an ingredient.`
+      );
+      setShowToast(true);
+
+      // const updatedIngredients = await getIngredients(item.item_id!);
+      // setIngredients(updatedIngredients);
+
+      // const updatedAvailableIngredients = await getAvailableIngredients(
+      //   item.item_id!
+      // );
+      // setAvailableIngredients(updatedAvailableIngredients);
+    } catch (error: any) {
+      setToastVariant("danger");
+      setToastMessage(error.message || "Failed to add ingredient.");
+      setShowToast(true);
+    }
   };
 
   useEffect(() => {
@@ -80,18 +104,20 @@ const ItemsUsingIngredient: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>Manage Ingredients of {item?.item_name}</h2>
+      {item ? (
+        <>
+          <h2>Manage Ingredients of {item.item_name}</h2>
 
-      {ingredients.length > 0 ? (
-        <IngredientSelector
-          mode="assign-ingredient"
-          currentItem={item!}
-          addedItems={ingredients}
-          availableItems={availableIngredients}
-          onComplete={handleComplete}
-        />
+          <IngredientSelector
+            mode="assign-ingredient"
+            currentItem={item}
+            addedItems={ingredients}
+            availableItems={availableIngredients}
+            onComplete={handleComplete}
+          />
+        </>
       ) : (
-        <p>No items are using this ingredient.</p>
+        <p>Loading item data...</p>
       )}
       <ToastNotification
         show={showToast}

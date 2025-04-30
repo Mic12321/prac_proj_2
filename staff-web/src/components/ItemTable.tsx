@@ -11,7 +11,7 @@ interface ItemTableProps {
   onSort: (key: keyof Item) => void;
   setEditedItem: React.Dispatch<React.SetStateAction<Item | null>>;
   navigateToDetail: (id: number) => void;
-  isEditing: boolean;
+  mode: "edit" | "display";
   onSelectItem: (item: Item) => void;
   showRemoveButton: boolean;
   onRemoveItem: (item: Item) => void;
@@ -27,11 +27,12 @@ const ItemTable: React.FC<ItemTableProps> = ({
   onSort,
   setEditedItem,
   navigateToDetail,
-  isEditing,
+  mode,
   onSelectItem,
   showRemoveButton,
   onRemoveItem,
 }) => {
+  console.log(editedItem);
   if (items.length === 0) return <p>No items found.</p>;
 
   return (
@@ -151,7 +152,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
                 </td>
                 <td>
                   <div className="d-flex gap-2">
-                    {isEditing ? (
+                    {mode === "edit" ? (
                       <>
                         <button
                           className="btn btn-primary btn-sm"
