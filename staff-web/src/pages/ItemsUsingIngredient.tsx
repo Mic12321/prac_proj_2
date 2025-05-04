@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { Item } from "../services/itemService";
-import IngredientSelector from "../components/IngredientSelector";
 
 const ItemsUsingIngredient: React.FC = () => {
   const { ingredientId } = useParams<{ ingredientId: string }>();
