@@ -32,7 +32,6 @@ const ItemTable: React.FC<ItemTableProps> = ({
   showRemoveButton,
   onRemoveItem,
 }) => {
-  console.log(editedItem);
   if (items.length === 0) return <p>No items found.</p>;
 
   return (

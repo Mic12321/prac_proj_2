@@ -54,6 +54,37 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   const navigate = useNavigate();
 
+  const [editedItemIngredient, setEditedItemIngredient] =
+    useState<Ingredient | null>(null);
+
+  const [originalItemIngredient, setOriginalItemIngredient] =
+    useState<Ingredient | null>(null);
+
+  const [editedIngredientUsedIn, setEditedIngredientUsedIn] =
+    useState<Ingredient | null>(null);
+
+  const [originalIngredientUsedIn, setOriginalIngredientUsedIn] =
+    useState<Ingredient | null>(null);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        ...initialData,
+        item_name: initialData.item_name ?? "",
+        item_description: initialData.item_description ?? "",
+        stock_quantity: initialData.stock_quantity ?? 0.0,
+        unit_name: initialData.unit_name ?? "",
+        low_stock_quantity: initialData.low_stock_quantity ?? 0.0,
+        price: initialData.price ?? 0.0,
+        category_id: initialData.category_id ?? 0,
+        for_sale: initialData.for_sale ?? true,
+        picture: initialData.picture ?? null,
+      });
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [initialData]);
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -326,9 +357,18 @@ const ItemForm: React.FC<ItemFormProps> = ({
         {itemIngredients.length > 0 ? (
           <IngredientTable
             ingredients={itemIngredients}
-            isEditing={false}
-            onSave={() => {}}
-            onCancel={() => {}}
+            mode={"display"}
+            onSaveIngredient={() => {}}
+            onCancelEdit={() => {}}
+            editedIngredient={null}
+            onSort={() => {}}
+            setEditedIngredient={() => {}}
+            showRemoveButton={false}
+            onRemoveIngredient={() => {}}
+            sortConfig={null}
+            onEditIngredient={() => {}}
+            onSelectIngredient={() => {}}
+            navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
           />
         ) : (
           <p>No ingredients available for this item.</p>
@@ -347,9 +387,18 @@ const ItemForm: React.FC<ItemFormProps> = ({
         {itemIngredientsUsedIn.length > 0 ? (
           <IngredientTable
             ingredients={itemIngredientsUsedIn}
-            isEditing={false}
-            onSave={() => {}}
-            onCancel={() => {}}
+            mode={"display"}
+            onSaveIngredient={() => {}}
+            onCancelEdit={() => {}}
+            editedIngredient={null}
+            onSort={() => {}}
+            setEditedIngredient={() => {}}
+            showRemoveButton={false}
+            onRemoveIngredient={() => {}}
+            sortConfig={null}
+            onEditIngredient={() => {}}
+            onSelectIngredient={() => {}}
+            navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
           />
         ) : (
           <p>No items used this ingredient.</p>

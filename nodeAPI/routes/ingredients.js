@@ -85,4 +85,67 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/", async (req, res) => {
+  const { itemToCreateId, ingredientItemId, quantity } = req.body;
+
+  if (
+    typeof itemToCreateId !== "number" ||
+    typeof ingredientItemId !== "number" ||
+    typeof quantity !== "number"
+  ) {
+    return res.status(400).json({ error: "Invalid or missing fields." });
+  }
+
+  try {
+    const ingredient = await Ingredient.findOne({
+      where: {
+        item_to_create_id: itemToCreateId,
+        ingredient_item_id: ingredientItemId,
+      },
+    });
+
+    if (!ingredient) {
+      return res.status(404).json({ error: "Ingredient not found." });
+    }
+
+    ingredient.quantity = quantity;
+    ingredient.last_updatetime = new Date();
+    await ingredient.save();
+
+    res.json(ingredient);
+  } catch (error) {
+    console.error("Error updating ingredient:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/", async (req, res) => {
+  const { itemToCreateId, ingredientItemId } = req.body;
+
+  if (
+    typeof itemToCreateId !== "number" ||
+    typeof ingredientItemId !== "number"
+  ) {
+    return res.status(400).json({ error: "Invalid or missing fields." });
+  }
+
+  try {
+    const deletedCount = await Ingredient.destroy({
+      where: {
+        item_to_create_id: itemToCreateId,
+        ingredient_item_id: ingredientItemId,
+      },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: "Ingredient not found." });
+    }
+
+    res.json({ message: "Ingredient deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting ingredient:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

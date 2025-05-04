@@ -1,164 +1,196 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { Item } from "../services/itemService";
 import { Ingredient } from "../services/ingredientService";
 
 interface IngredientTableProps {
   ingredients: Ingredient[];
   editedIngredient: Ingredient | null;
-  mode: "edit" | "display";
-  onSave: (newIngredients: Ingredient[]) => void;
-  onCancel: () => void;
+  sortConfig: { key: keyof Ingredient; direction: string } | null;
+  onEditIngredient: (item: Ingredient) => void;
+  onSaveIngredient: () => void;
+  onCancelEdit: () => void;
   onSort: (key: keyof Ingredient) => void;
   setEditedIngredient: React.Dispatch<React.SetStateAction<Ingredient | null>>;
+  navigateToDetail: (id: number) => void;
+  mode: "edit" | "display" | "select";
+  onSelectIngredient: (ingredient: Ingredient) => void;
   showRemoveButton: boolean;
   onRemoveIngredient: (ingredient: Ingredient) => void;
-  sortConfig: { key: keyof Ingredient; direction: string } | null;
-  onEditIngredient: (ingredient: Ingredient) => void;
 }
 
 const IngredientTable: React.FC<IngredientTableProps> = ({
   ingredients,
   editedIngredient,
+  sortConfig,
+  onEditIngredient,
+  onSaveIngredient,
+  onCancelEdit,
+  onSort,
+  setEditedIngredient,
+  navigateToDetail,
   mode,
-  onSave,
-  onCancel,
+  onSelectIngredient,
+  showRemoveButton,
+  onRemoveIngredient,
 }) => {
-  const [localIngredients, setLocalIngredients] =
-    useState<Ingredient[]>(ingredients);
-
-  useEffect(() => {
-    setLocalIngredients(ingredients);
-  }, [ingredients]);
-
-  const handleInputChange = (
-    index: number,
-    field: keyof Ingredient,
-    value: string
-  ) => {
-    const updated = [...localIngredients];
-    updated[index] = {
-      ...updated[index],
-      [field]: field === "quantity" ? Number(value) : value,
-    };
-    setLocalIngredients(updated);
-  };
-
-  const handleSave = () => {
-    onSave(localIngredients);
-  };
+  // if (!ingredients || ingredients.length === 0)
+  //   return <p>No ingredients found.</p>;
+  // if (mode === "edit" && editedIngredient === null)
+  //   return <p>Preparing to edit...</p>;
 
   return (
-    <div>
-      <table className="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>ITEM NAME</th>
-            <th>QUANTITY</th>
-            <th>UNIT NAME</th>
-          </tr>
-        </thead>
-        <tbody>
-          {localIngredients.map((ingredient, index) => (
-            <tr key={index}>
-              {(() => {
-                switch (mode) {
-                  case "edit":
-                    return (
-                      <>
-                        <td>
-                          <input
-                            type="text"
-                            value={ingredient.item_name}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "item_name",
-                                e.target.value
-                              )
-                            }
-                            className="form-control"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={ingredient.quantity}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "quantity",
-                                e.target.value
-                              )
-                            }
-                            className="form-control"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            value={ingredient.unit_name}
-                            onChange={(e) =>
-                              handleInputChange(
-                                index,
-                                "unit_name",
-                                e.target.value
-                              )
-                            }
-                            className="form-control"
-                          />
-                        </td>
-                        {/* <td>
-                          <div className="d-flex gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={onSaveItem}
-                            >
-                              Save
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={onCancelEdit}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </td> */}
-                      </>
-                    );
-
-                  case "display":
-                    return (
-                      <>
-                        <td>{ingredient.item_name}</td>
-                        <td>{ingredient.quantity}</td>
-                        <td>{ingredient.unit_name}</td>
-                      </>
-                    );
-                  default:
-                    return (
-                      <>
-                        <td>{ingredient.item_name}</td>
-                        <td>{ingredient.quantity}</td>
-                        <td>{ingredient.unit_name}</td>
-                      </>
-                    );
-                }
-              })()}
-            </tr>
+    <table className="table table-striped table-bordered">
+      <thead>
+        <tr>
+          {["item_name", "quantity", "unit_name"].map((key) => (
+            <th
+              key={key}
+              onClick={() => onSort(key as keyof Ingredient)}
+              style={{ cursor: "pointer", minWidth: "150px" }}
+            >
+              {key.replace("_", " ").toUpperCase()}{" "}
+              <span style={{ display: "inline-block", width: "15px" }}>
+                {sortConfig?.key === key
+                  ? sortConfig.direction === "asc"
+                    ? "↑"
+                    : "↓"
+                  : " "}
+              </span>
+            </th>
           ))}
-        </tbody>
-      </table>
+          <th style={{ minWidth: "100px" }}>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {ingredients.map((ingredient) => (
+          <tr key={ingredient.item_id}>
+            {editedIngredient?.item_id === ingredient.item_id ? (
+              <>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={editedIngredient!.item_name}
+                    onChange={(e) =>
+                      setEditedIngredient((prev) =>
+                        prev ? { ...prev, item_name: e.target.value } : prev
+                      )
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={editedIngredient!.quantity ?? ""}
+                    onChange={(e) =>
+                      setEditedIngredient((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              quantity: parseFloat(e.target.value) || 0,
+                            }
+                          : prev
+                      )
+                    }
+                  />
+                </td>
+                <td>{ingredient.unit_name}</td>
+                <td>
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-success btn-sm"
+                      onClick={onSaveIngredient}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={onCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </td>
+              </>
+            ) : (
+              <>
+                <td>{ingredient.item_name}</td>
+                <td>
+                  {typeof ingredient.quantity === "number"
+                    ? ingredient.quantity.toFixed(2)
+                    : ingredient.quantity}
+                </td>
+                <td>{ingredient.unit_name}</td>
 
-      {mode === "edit" && (
-        <div className="mt-3">
-          <button className="btn btn-primary me-2" onClick={handleSave}>
-            Save
-          </button>
-          <button className="btn btn-secondary" onClick={onCancel}>
-            Cancel
-          </button>
-        </div>
-      )}
-    </div>
+                <td>
+                  <div className="d-flex gap-2">
+                    {mode === "edit" && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => onEditIngredient(ingredient)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => navigateToDetail(ingredient.item_id!)}
+                        >
+                          View Details
+                        </button>
+                        {showRemoveButton && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => onRemoveIngredient(ingredient)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {mode === "display" && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => navigateToDetail(ingredient.item_id!)}
+                      >
+                        View Details
+                      </button>
+                    )}
+
+                    {mode === "select" && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-success btn-sm"
+                          onClick={() => onSelectIngredient(ingredient)}
+                        >
+                          Select
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => navigateToDetail(ingredient.item_id!)}
+                        >
+                          View Details
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };
 
