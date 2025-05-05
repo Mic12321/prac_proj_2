@@ -6,7 +6,6 @@ import { Ingredient } from "../services/ingredientService";
 import IngredientTable from "./IngredientTable";
 import { useNavigate } from "react-router";
 import AddCategoryModal from "./AddCategoryModal";
-import IngredientSelector from "./IngredientSelector";
 
 interface ItemFormProps {
   initialData?: Item;
@@ -53,18 +52,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [categoryNameError, setCategoryNameError] = useState<string>("");
 
   const navigate = useNavigate();
-
-  const [editedItemIngredient, setEditedItemIngredient] =
-    useState<Ingredient | null>(null);
-
-  const [originalItemIngredient, setOriginalItemIngredient] =
-    useState<Ingredient | null>(null);
-
-  const [editedIngredientUsedIn, setEditedIngredientUsedIn] =
-    useState<Ingredient | null>(null);
-
-  const [originalIngredientUsedIn, setOriginalIngredientUsedIn] =
-    useState<Ingredient | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -215,6 +202,14 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const handleToModifyIngredientForItemUsingThisIngredient = () => {
     navigate(`/ingredient/${formData.item_id}/items-using`);
   };
+
+  // const handleSaveAddModifyIngredientForItem = () => {
+  //   navigate(`/item/${formData.item_id}/ingredients`);
+  // };
+
+  // const handleSaveAddIngredientForItemUsingThisIngredient = () => {
+  //   navigate(`/ingredient/${formData.item_id}/items-using`);
+  // };
 
   return (
     <form onSubmit={handleSubmit} className="p-4 border rounded">
@@ -373,13 +368,26 @@ const ItemForm: React.FC<ItemFormProps> = ({
         ) : (
           <p>No ingredients available for this item.</p>
         )}
-        <button
-          type="button"
-          className="btn btn-info mt-3"
-          onClick={handleToModifyIngredientForItem}
-        >
-          Modify Ingredient
-        </button>
+        {initialData?.item_id !== undefined ? (
+          <button
+            type="button"
+            className="btn btn-info mt-3"
+            onClick={handleToModifyIngredientForItem}
+          >
+            Modify Ingredient
+          </button>
+        ) : (
+          <p className="text-muted">
+            Please add ingredients after adding this new item
+          </p>
+          // <button
+          //   type="button"
+          //   className="btn btn-success mt-3"
+          //   onClick={handleSaveAddModifyIngredientForItem}
+          // >
+          //   Save Item & Add Ingredient
+          // </button>
+        )}
       </div>
 
       <div className="mt-4">
@@ -403,13 +411,26 @@ const ItemForm: React.FC<ItemFormProps> = ({
         ) : (
           <p>No items used this ingredient.</p>
         )}
-        <button
-          type="button"
-          className="btn btn-info mt-3"
-          onClick={handleToModifyIngredientForItemUsingThisIngredient}
-        >
-          Modify Ingredient
-        </button>
+        {initialData?.item_id !== undefined ? (
+          <button
+            type="button"
+            className="btn btn-info mt-3"
+            onClick={handleToModifyIngredientForItemUsingThisIngredient}
+          >
+            Modify Ingredient
+          </button>
+        ) : (
+          <p className="text-muted">
+            Please add ingredients after adding this new item
+          </p>
+          // <button
+          //   type="button"
+          //   className="btn btn-success mt-3"
+          //   onClick={handleSaveAddIngredientForItemUsingThisIngredient}
+          // >
+          //   Save Item & Add Ingredient
+          // </button>
+        )}
       </div>
 
       <div className="border-top my-3"></div>
