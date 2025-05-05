@@ -26,7 +26,6 @@ const IngredientManagement: React.FC = () => {
   const [availableItems, setAvailableItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -39,15 +38,19 @@ const IngredientManagement: React.FC = () => {
     "success" | "danger" | "info"
   >("success");
 
+  const [sortIngredientConfig, setSortIngredientConfig] = useState<{
+    key: keyof Ingredient;
+    direction: "asc" | "desc";
+  } | null>(null);
+
   const [sortItemConfig, setSortItemConfig] = useState<{
     key: keyof Item;
-    direction: string;
+    direction: "asc" | "desc";
   } | null>(null);
 
   const [editedIngredient, setEditedIngredient] = useState<Ingredient | null>(
     null
   );
-
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [ingredientToDelete, setIngredientToDelete] =
     useState<Ingredient | null>(null);
@@ -56,7 +59,6 @@ const IngredientManagement: React.FC = () => {
     useState<string>("");
   const [confirmationModalMessage, setConfirmationModalMessage] =
     useState<string>("");
-
   const [originalIngredient, setOriginalIngredient] =
     useState<Ingredient | null>(null);
 
@@ -92,7 +94,7 @@ const IngredientManagement: React.FC = () => {
     fetchData();
   }, [itemId]);
 
-  useEffect(() => {
+  const filteredItems = useMemo(() => {
     const filtered = availableItems.filter((item) => {
       const matchesSearch =
         item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,8 +106,15 @@ const IngredientManagement: React.FC = () => {
       return matchesSearch && matchesCategory;
     });
 
-    setFilteredItems(filtered);
-  }, [searchQuery, availableItems, selectedCategories]);
+    if (!sortItemConfig) return filtered;
+
+    const { key, direction } = sortItemConfig;
+    return [...filtered].sort((a, b) => {
+      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
+      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [availableItems, searchQuery, selectedCategories, sortItemConfig]);
 
   const filteredCategories = useMemo(() => {
     return categories.filter((category) =>
@@ -118,6 +127,20 @@ const IngredientManagement: React.FC = () => {
     setQuantity(1);
     setShowEditModal(true);
   };
+
+  const applyIngredientSorting = useCallback(
+    (data: Ingredient[]) => {
+      if (!sortIngredientConfig) return data;
+
+      const { key, direction } = sortIngredientConfig;
+      return [...data].sort((a, b) => {
+        if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
+        if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    },
+    [sortIngredientConfig]
+  );
 
   const handleSaveQuantity = async () => {
     if (!selectedItem || !item) return;
@@ -135,7 +158,7 @@ const IngredientManagement: React.FC = () => {
         getIngredients(item.item_id!),
         getAvailableIngredients(item.item_id!),
       ]);
-      setIngredients(updatedIngredients);
+      setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
     } catch (error: any) {
       setToastVariant("danger");
@@ -149,14 +172,6 @@ const IngredientManagement: React.FC = () => {
     if (sortItemConfig?.key === key && sortItemConfig.direction === "asc") {
       direction = "desc";
     }
-
-    const sortedItems = [...filteredItems].sort((a, b) => {
-      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
-      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setFilteredItems(sortedItems);
     setSortItemConfig({ key, direction });
   };
 
@@ -208,12 +223,11 @@ const IngredientManagement: React.FC = () => {
       setEditedIngredient(null);
       setOriginalIngredient(null);
 
-      // Refresh ingredients and available items
       const [updatedIngredients, updatedAvailableItems] = await Promise.all([
         getIngredients(item!.item_id!),
         getAvailableIngredients(item!.item_id!),
       ]);
-      setIngredients(updatedIngredients);
+      setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
     } catch (error: any) {
       setToastVariant("danger");
@@ -246,7 +260,7 @@ const IngredientManagement: React.FC = () => {
         getIngredients(item.item_id!),
         getAvailableIngredients(item.item_id!),
       ]);
-      setIngredients(updatedIngredients);
+      setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
 
       setToastVariant("success");
@@ -259,6 +273,25 @@ const IngredientManagement: React.FC = () => {
     setShowToast(true);
     setShowConfirmDialog(false);
     setIngredientToDelete(null);
+  };
+
+  const handleIngredientSort = (key: keyof Ingredient) => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortIngredientConfig?.key === key &&
+      sortIngredientConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+
+    const sortedIngredients = [...ingredients].sort((a, b) => {
+      if (a[key]! < b[key]!) return direction === "asc" ? -1 : 1;
+      if (a[key]! > b[key]!) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setIngredients(sortedIngredients);
+    setSortIngredientConfig({ key, direction });
   };
 
   return (
@@ -274,12 +307,12 @@ const IngredientManagement: React.FC = () => {
             <IngredientTable
               ingredients={ingredients}
               editedIngredient={editedIngredient}
-              sortConfig={null}
+              sortConfig={sortIngredientConfig}
               mode="edit"
               onEditIngredient={handleEditIngredient}
               onSaveIngredient={handleSaveEditedIngredient}
               onCancelEdit={handleCancelEdit}
-              onSort={() => {}}
+              onSort={handleIngredientSort}
               setEditedIngredient={setEditedIngredient}
               navigateToDetail={(id: number) => navigate(`/item-detail/${id}`)}
               onSelectIngredient={() => {}}
@@ -292,7 +325,7 @@ const IngredientManagement: React.FC = () => {
           <ItemSearchBar
             searchQuery={searchQuery}
             onSearchChange={(e) => setSearchQuery(e.target.value)}
-            onAddItemClick={() => {}}
+            onAddItemClick={() => navigate("/add-item")}
             categories={filteredCategories}
             selectedCategories={selectedCategories}
             setSelectedCategories={setSelectedCategories}

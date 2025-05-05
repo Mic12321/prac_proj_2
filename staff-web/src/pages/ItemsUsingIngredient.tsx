@@ -16,11 +16,7 @@ const ItemsUsingIngredient: React.FC = () => {
       <h2>Manage Items Using Apple</h2>
 
       {itemsUsingIngredient.length > 0 ? (
-        <IngredientSelector
-          mode="used-in"
-          currentItemId={Number(ingredientId)}
-          onComplete={handleComplete}
-        />
+        <p>Some items are using this ingredient.</p>
       ) : (
         <p>No items are using this ingredient.</p>
       )}
