@@ -70,10 +70,12 @@ export const getIngredientsUsedIn = async (itemId: number) => {
 
     const data = await response.json();
 
+    console.log("Ingredients used in:", data);
+
     return data.map((ingredient: any) => ({
       item_id: ingredient.itemToCreate.item_id,
       item_name: ingredient.itemToCreate.item_name,
-      quantity: ingredient.itemToCreate.quantity,
+      quantity: ingredient.quantity,
       unit_name: ingredient.itemToCreate.unit_name,
     }));
   } catch (error) {
