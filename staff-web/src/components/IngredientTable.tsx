@@ -66,7 +66,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
           <tr key={ingredient.item_id}>
             {editedIngredient?.item_id === ingredient.item_id ? (
               <>
-                <td>
+                {/* <td>
                   <input
                     type="text"
                     className="form-control"
@@ -77,7 +77,8 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
                       )
                     }
                   />
-                </td>
+                </td> */}
+                <td>{ingredient.item_name}</td>
                 <td>
                   <input
                     type="number"
