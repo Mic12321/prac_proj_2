@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { getCategories, addCategory } from "../services/categoryService";
 import { Item } from "../services/itemService";
@@ -50,6 +50,16 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [newCategoryDescription, setNewCategoryDescription] =
     useState<string>("");
   const [categoryNameError, setCategoryNameError] = useState<string>("");
+
+  const [sortConfigItemIngredients, setSortConfigItemIngredients] = useState<{
+    key: keyof Ingredient;
+    direction: "asc" | "desc";
+  } | null>(null);
+
+  const [sortConfigUsedIn, setSortConfigUsedIn] = useState<{
+    key: keyof Ingredient;
+    direction: "asc" | "desc";
+  } | null>(null);
 
   const navigate = useNavigate();
 
@@ -211,6 +221,57 @@ const ItemForm: React.FC<ItemFormProps> = ({
   //   navigate(`/ingredient/${formData.item_id}/items-using`);
   // };
 
+  const handleSortItemIngredients = (key: keyof Ingredient) => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortConfigItemIngredients?.key === key &&
+      sortConfigItemIngredients.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+    setSortConfigItemIngredients({ key, direction });
+  };
+
+  const handleSortUsedIn = (key: keyof Ingredient) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfigUsedIn?.key === key && sortConfigUsedIn.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfigUsedIn({ key, direction });
+  };
+
+  const sortedItemIngredients = useMemo(() => {
+    if (!sortConfigItemIngredients) return itemIngredients;
+    const { key, direction } = sortConfigItemIngredients;
+    return [...itemIngredients].sort((a, b) =>
+      a[key]! < b[key]!
+        ? direction === "asc"
+          ? -1
+          : 1
+        : a[key]! > b[key]!
+        ? direction === "asc"
+          ? 1
+          : -1
+        : 0
+    );
+  }, [itemIngredients, sortConfigItemIngredients]);
+
+  const sortedItemIngredientsUsedIn = useMemo(() => {
+    if (!sortConfigUsedIn) return itemIngredientsUsedIn;
+    const { key, direction } = sortConfigUsedIn;
+    return [...itemIngredientsUsedIn].sort((a, b) =>
+      a[key]! < b[key]!
+        ? direction === "asc"
+          ? -1
+          : 1
+        : a[key]! > b[key]!
+        ? direction === "asc"
+          ? 1
+          : -1
+        : 0
+    );
+  }, [itemIngredientsUsedIn, sortConfigUsedIn]);
+
   return (
     <form onSubmit={handleSubmit} className="p-4 border rounded">
       <div className="mb-3">
@@ -351,16 +412,16 @@ const ItemForm: React.FC<ItemFormProps> = ({
         <h4>Item Ingredients</h4>
         {itemIngredients.length > 0 ? (
           <IngredientTable
-            ingredients={itemIngredients}
+            ingredients={sortedItemIngredients}
             mode={"display"}
             onSaveIngredient={() => {}}
             onCancelEdit={() => {}}
             editedIngredient={null}
-            onSort={() => {}}
+            onSort={handleSortItemIngredients}
             setEditedIngredient={() => {}}
             showRemoveButton={false}
             onRemoveIngredient={() => {}}
-            sortConfig={null}
+            sortConfig={sortConfigItemIngredients}
             onEditIngredient={() => {}}
             onSelectIngredient={() => {}}
             navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
@@ -394,16 +455,16 @@ const ItemForm: React.FC<ItemFormProps> = ({
         <h4>Items Using This Ingredient</h4>
         {itemIngredientsUsedIn.length > 0 ? (
           <IngredientTable
-            ingredients={itemIngredientsUsedIn}
+            ingredients={sortedItemIngredientsUsedIn}
             mode={"display"}
             onSaveIngredient={() => {}}
             onCancelEdit={() => {}}
             editedIngredient={null}
-            onSort={() => {}}
+            onSort={handleSortUsedIn}
             setEditedIngredient={() => {}}
             showRemoveButton={false}
             onRemoveIngredient={() => {}}
-            sortConfig={null}
+            sortConfig={sortConfigUsedIn}
             onEditIngredient={() => {}}
             onSelectIngredient={() => {}}
             navigateToDetail={(id) => navigate(`/item-detail/${id}`)}
