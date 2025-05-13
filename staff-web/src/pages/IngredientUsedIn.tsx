@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router";
 import { getItemById, Item } from "../services/itemService";
 import {
   createIngredient,
-  getAvailableIngredients,
-  getIngredients,
+  getAvailableItems,
+  getIngredientsUsedIn,
   Ingredient,
   updateIngredient,
   deleteIngredient,
@@ -17,8 +17,8 @@ import IngredientTable from "../components/IngredientTable";
 import EditItemQuantityModal from "../components/EditItemQuantityModal";
 import ConfirmationModal from "../components/ConfirmationModal";
 
-const IngredientManagement: React.FC = () => {
-  const { itemId } = useParams<{ itemId: string }>();
+const IngredientUsedIn: React.FC = () => {
+  const { ingredientId } = useParams<{ ingredientId: string }>();
   const navigate = useNavigate();
 
   const [item, setItem] = useState<Item | undefined>(undefined);
@@ -63,7 +63,7 @@ const IngredientManagement: React.FC = () => {
     useState<Ingredient | null>(null);
 
   useEffect(() => {
-    if (!itemId) return;
+    if (!ingredientId) return;
 
     const fetchData = async () => {
       try {
@@ -73,9 +73,9 @@ const IngredientManagement: React.FC = () => {
           fetchedAvailableItems,
           fetchedCategories,
         ] = await Promise.all([
-          getItemById(Number(itemId)),
-          getIngredients(Number(itemId)),
-          getAvailableIngredients(Number(itemId)),
+          getItemById(Number(ingredientId)),
+          getIngredientsUsedIn(Number(ingredientId)),
+          getAvailableItems(Number(ingredientId)),
           getCategories(),
         ]);
 
@@ -92,7 +92,7 @@ const IngredientManagement: React.FC = () => {
     };
 
     fetchData();
-  }, [itemId]);
+  }, [ingredientId]);
 
   const filteredItems = useMemo(() => {
     const filtered = availableItems.filter((item) => {
@@ -153,7 +153,7 @@ const IngredientManagement: React.FC = () => {
     }
 
     try {
-      await createIngredient(item.item_id!, selectedItem.item_id!, quantity);
+      await createIngredient(selectedItem.item_id!, item.item_id!, quantity);
       setToastVariant("success");
       setToastMessage(
         `Successfully added ${quantity} of ${selectedItem.item_name} as an ingredient.`
@@ -162,8 +162,8 @@ const IngredientManagement: React.FC = () => {
       setShowEditModal(false);
 
       const [updatedIngredients, updatedAvailableItems] = await Promise.all([
-        getIngredients(item.item_id!),
-        getAvailableIngredients(item.item_id!),
+        getIngredientsUsedIn(item.item_id!),
+        getAvailableItems(item.item_id!),
       ]);
       setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
@@ -220,8 +220,8 @@ const IngredientManagement: React.FC = () => {
 
     try {
       await updateIngredient(
-        item!.item_id!,
         editedIngredient!.item_id!,
+        item!.item_id!,
         editedIngredient!.quantity!
       );
       setToastVariant("success");
@@ -231,8 +231,8 @@ const IngredientManagement: React.FC = () => {
       setOriginalIngredient(null);
 
       const [updatedIngredients, updatedAvailableItems] = await Promise.all([
-        getIngredients(item!.item_id!),
-        getAvailableIngredients(item!.item_id!),
+        getIngredientsUsedIn(item!.item_id!),
+        getAvailableItems(item!.item_id!),
       ]);
       setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
@@ -262,10 +262,10 @@ const IngredientManagement: React.FC = () => {
     if (!item) return;
 
     try {
-      await deleteIngredient(item.item_id!, ingredient.item_id!);
+      await deleteIngredient(ingredient.item_id!, item.item_id!);
       const [updatedIngredients, updatedAvailableItems] = await Promise.all([
-        getIngredients(item.item_id!),
-        getAvailableIngredients(item.item_id!),
+        getIngredientsUsedIn(item.item_id!),
+        getAvailableItems(item.item_id!),
       ]);
       setIngredients(applyIngredientSorting(updatedIngredients));
       setAvailableItems(updatedAvailableItems);
@@ -305,11 +305,11 @@ const IngredientManagement: React.FC = () => {
     <div className="container mt-4">
       {item ? (
         <>
-          <h2>Manage Ingredients of {item.item_name}</h2>
+          <h2>Ingredient Usage: {item.item_name}</h2>
 
-          <h4 className="mt-4">List of Ingredients</h4>
+          <h4 className="mt-4">List of Items</h4>
           {ingredients.length === 0 ? (
-            <p>No ingredients are assigned.</p>
+            <p>No Items are assigned.</p>
           ) : (
             <IngredientTable
               ingredients={ingredients}
@@ -328,7 +328,9 @@ const IngredientManagement: React.FC = () => {
             />
           )}
 
-          <h4 className="mt-4">Select Item to Use as Ingredient</h4>
+          <h4 className="mt-4">
+            Select Item to Add as Ingredient for {item.item_name}
+          </h4>
           <ItemSearchBar
             searchQuery={searchQuery}
             onSearchChange={(e) => setSearchQuery(e.target.value)}
@@ -390,4 +392,4 @@ const IngredientManagement: React.FC = () => {
   );
 };
 
-export default IngredientManagement;
+export default IngredientUsedIn;

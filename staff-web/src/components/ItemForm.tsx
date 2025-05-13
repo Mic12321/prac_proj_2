@@ -210,7 +210,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleToModifyIngredientForItemUsingThisIngredient = () => {
-    navigate(`/ingredient/${formData.item_id}/items-using`);
+    navigate(`/ingredient/${formData.item_id}`);
   };
 
   // const handleSaveAddModifyIngredientForItem = () => {

@@ -5,6 +5,43 @@ const Item = require("../models/Item");
 const Category = require("../models/Category");
 const { Op } = require("sequelize");
 
+async function buildGraph() {
+  const ingredients = await Ingredient.findAll({ raw: true });
+  const graph = new Map();
+
+  for (const ing of ingredients) {
+    const from = ing.item_to_create_id;
+    const to = ing.ingredient_item_id;
+
+    if (!graph.has(from)) graph.set(from, []);
+    graph.get(from).push(to);
+  }
+
+  return graph;
+}
+
+function hasCycle(graph, itemToCreateId, ingredientItemId) {
+  if (itemToCreateId === ingredientItemId) return true;
+
+  const visited = new Set();
+  const stack = [ingredientItemId];
+
+  while (stack.length) {
+    const current = stack.pop();
+    if (current === itemToCreateId) return true;
+
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const neighbors = graph.get(current) || [];
+    for (const neighbor of neighbors) {
+      stack.push(neighbor);
+    }
+  }
+
+  return false;
+}
+
 router.get("/used-in/:itemId", async (req, res) => {
   try {
     const itemId = req.params.itemId;
@@ -22,29 +59,68 @@ router.get("/used-in/:itemId", async (req, res) => {
 });
 
 router.get("/available/:itemId", async (req, res) => {
-  const itemId = req.params.itemId;
+  const itemId = parseInt(req.params.itemId);
 
   try {
+    const graph = await buildGraph();
+
     const linkedIngredients = await Ingredient.findAll({
       where: { item_to_create_id: itemId },
       attributes: ["ingredient_item_id"],
+      raw: true,
     });
 
     const linkedIds = linkedIngredients.map((i) => i.ingredient_item_id);
 
-    const availableItems = await Item.findAll({
-      where: linkedIds.length
-        ? {
-            item_id: {
-              [Op.notIn]: [...linkedIds, itemId],
-            },
-          }
-        : {},
+    const potentialItems = await Item.findAll({
+      where: {
+        item_id: {
+          [Op.notIn]: [...linkedIds, itemId],
+        },
+      },
     });
 
-    res.json(availableItems);
+    const safeItems = potentialItems.filter((item) => {
+      return !hasCycle(graph, itemId, item.item_id);
+    });
+
+    res.json(safeItems);
   } catch (error) {
-    res.status(500).json({ error: "Error fetching available items" });
+    console.error("Error in /available/:itemId:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/available-items/:ingredientId", async (req, res) => {
+  const ingredientId = parseInt(req.params.ingredientId);
+
+  try {
+    const graph = await buildGraph();
+
+    const linkedItems = await Ingredient.findAll({
+      where: { ingredient_item_id: ingredientId },
+      attributes: ["item_to_create_id"],
+      raw: true,
+    });
+
+    const linkedIds = linkedItems.map((i) => i.item_to_create_id);
+
+    const potentialItems = await Item.findAll({
+      where: {
+        item_id: {
+          [Op.notIn]: linkedIds,
+        },
+      },
+    });
+
+    const safeItems = potentialItems.filter((item) => {
+      return !hasCycle(graph, item.item_id, ingredientId);
+    });
+
+    res.json(safeItems);
+  } catch (error) {
+    console.error("Error in /available-items/:ingredientId:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -72,6 +148,11 @@ router.post("/", async (req, res) => {
   }
 
   try {
+    const graph = await buildGraph();
+    if (hasCycle(graph, itemToCreateId, ingredientItemId)) {
+      return res.status(400).json({ error: "Circular dependency detected." });
+    }
+
     const newIngredient = await Ingredient.create({
       item_to_create_id: itemToCreateId,
       ingredient_item_id: ingredientItemId,
@@ -84,7 +165,6 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 router.put("/", async (req, res) => {
   const { itemToCreateId, ingredientItemId, quantity } = req.body;
 

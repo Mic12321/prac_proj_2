@@ -17,7 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./App.css";
 import IngredientManagement from "./pages/IngredientManagement";
-import ItemsUsingIngredient from "./pages/ItemsUsingIngredient";
+import IngredientUsedIn from "./pages/IngredientUsedIn";
 import CategoryManagement from "./pages/CategoryManagement";
 import CategoryDetail from "./pages/CategoryDetail";
 
@@ -164,11 +164,11 @@ function App() {
             }
           />
           <Route
-            path="/ingredient/:ingredientId/items-using"
+            path="/ingredient/:ingredientId"
             element={
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
-                element={<ItemsUsingIngredient />}
+                element={<IngredientUsedIn />}
               />
             }
           />

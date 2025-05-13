@@ -82,6 +82,35 @@ export const getIngredientsUsedIn = async (itemId: number) => {
   }
 };
 
+export const getAvailableItems = async (ingredientId: number) => {
+  try {
+    const response = await fetch(
+      `${API_ROUTES.INGREDIENTS}/available-items/${ingredientId}`
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch available items");
+    }
+
+    const data = await response.json();
+
+    console.log("Available items data:", data); // Debugging line]
+
+    return data;
+
+    // return data.map((item: any) => ({
+    //   item_id: item.item_id,
+    //   item_name: item.item_name,
+    //   quantity: item.stock_quantity,
+    //   unit_name: item.unit_name,
+    // }));
+  } catch (error) {
+    console.error("Error fetching available items:", error);
+    throw error;
+  }
+};
+
 export const createIngredient = async (
   itemToCreateId: number,
   ingredientItemId: number,

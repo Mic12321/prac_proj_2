@@ -66,18 +66,6 @@ const IngredientTable: React.FC<IngredientTableProps> = ({
           <tr key={ingredient.item_id}>
             {editedIngredient?.item_id === ingredient.item_id ? (
               <>
-                {/* <td>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={editedIngredient!.item_name}
-                    onChange={(e) =>
-                      setEditedIngredient((prev) =>
-                        prev ? { ...prev, item_name: e.target.value } : prev
-                      )
-                    }
-                  />
-                </td> */}
                 <td>{ingredient.item_name}</td>
                 <td>
                   <input
