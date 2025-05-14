@@ -134,6 +134,10 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
+  if (quantity <= 0) {
+    return res.status(400).json({ error: "Quantity must be greater than 0." });
+  }
+
   try {
     const graph = await getGraph();
     if (hasCycle(graph, itemToCreateId, ingredientItemId)) {
