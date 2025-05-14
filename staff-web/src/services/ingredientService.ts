@@ -95,16 +95,7 @@ export const getAvailableItems = async (ingredientId: number) => {
 
     const data = await response.json();
 
-    console.log("Available items data:", data); // Debugging line]
-
     return data;
-
-    // return data.map((item: any) => ({
-    //   item_id: item.item_id,
-    //   item_name: item.item_name,
-    //   quantity: item.stock_quantity,
-    //   unit_name: item.unit_name,
-    // }));
   } catch (error) {
     console.error("Error fetching available items:", error);
     throw error;
