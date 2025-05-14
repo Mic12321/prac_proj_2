@@ -156,7 +156,7 @@ const IngredientUsedIn: React.FC = () => {
       await createIngredient(selectedItem.item_id!, item.item_id!, quantity);
       setToastVariant("success");
       setToastMessage(
-        `Successfully added ${quantity} of ${selectedItem.item_name} as an ingredient.`
+        `Successfully added ${quantity} of ingredient ${selectedItem.item_name} for item ${item.item_name}.`
       );
       setShowToast(true);
       setShowEditModal(false);
@@ -252,7 +252,7 @@ const IngredientUsedIn: React.FC = () => {
     setIngredientToDelete(ingredient);
     setConfirmationModalTitle("Remove Ingredient");
     setConfirmationModalMessage(
-      `Are you sure you want to remove ${ingredient.item_name} from ingredients?`
+      `Are you sure you want to remove item ${ingredient.item_name} using ingredient ${item?.item_name}?`
     );
     setConfirmAction(() => () => handleDeleteConfirmIngredient(ingredient));
     setShowConfirmDialog(true);
