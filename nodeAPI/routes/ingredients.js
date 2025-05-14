@@ -5,20 +5,7 @@ const Item = require("../models/Item");
 const Category = require("../models/Category");
 const { Op } = require("sequelize");
 
-async function buildGraph() {
-  const ingredients = await Ingredient.findAll({ raw: true });
-  const graph = new Map();
-
-  for (const ing of ingredients) {
-    const from = ing.item_to_create_id;
-    const to = ing.ingredient_item_id;
-
-    if (!graph.has(from)) graph.set(from, []);
-    graph.get(from).push(to);
-  }
-
-  return graph;
-}
+const { getGraph, invalidateGraphCache } = require("../utils/graphCache");
 
 function hasCycle(graph, itemToCreateId, ingredientItemId) {
   if (itemToCreateId === ingredientItemId) return true;
@@ -33,7 +20,7 @@ function hasCycle(graph, itemToCreateId, ingredientItemId) {
     if (visited.has(current)) continue;
     visited.add(current);
 
-    const neighbors = graph.get(current) || [];
+    const neighbors = graph[current] || [];
     for (const neighbor of neighbors) {
       stack.push(neighbor);
     }
@@ -62,7 +49,7 @@ router.get("/available/:itemId", async (req, res) => {
   const itemId = parseInt(req.params.itemId);
 
   try {
-    const graph = await buildGraph();
+    const graph = await getGraph();
 
     const linkedIngredients = await Ingredient.findAll({
       where: { item_to_create_id: itemId },
@@ -95,7 +82,7 @@ router.get("/available-items/:ingredientId", async (req, res) => {
   const ingredientId = parseInt(req.params.ingredientId);
 
   try {
-    const graph = await buildGraph();
+    const graph = await getGraph();
 
     const linkedItems = await Ingredient.findAll({
       where: { ingredient_item_id: ingredientId },
@@ -148,7 +135,7 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const graph = await buildGraph();
+    const graph = await getGraph();
     if (hasCycle(graph, itemToCreateId, ingredientItemId)) {
       return res.status(400).json({ error: "Circular dependency detected." });
     }
@@ -158,6 +145,9 @@ router.post("/", async (req, res) => {
       ingredient_item_id: ingredientItemId,
       quantity,
     });
+
+    //
+    await invalidateGraphCache();
 
     res.status(201).json(newIngredient);
   } catch (error) {
@@ -192,6 +182,9 @@ router.put("/", async (req, res) => {
     ingredient.last_updatetime = new Date();
     await ingredient.save();
 
+    //
+    await invalidateGraphCache();
+
     res.json(ingredient);
   } catch (error) {
     console.error("Error updating ingredient:", error);
@@ -220,6 +213,9 @@ router.delete("/", async (req, res) => {
     if (deletedCount === 0) {
       return res.status(404).json({ error: "Ingredient not found." });
     }
+
+    //
+    await invalidateGraphCache();
 
     res.json({ message: "Ingredient deleted successfully." });
   } catch (error) {
