@@ -5,6 +5,7 @@ interface EditItemQuantityModalProps {
   show: boolean;
   itemName: string;
   quantity: number;
+  minQuantity?: number;
   onQuantityChange: (value: number) => void;
   onClose: () => void;
   onSave: () => void;
@@ -14,6 +15,7 @@ const EditItemQuantityModal: React.FC<EditItemQuantityModalProps> = ({
   show,
   itemName,
   quantity,
+  minQuantity = 0,
   onQuantityChange,
   onClose,
   onSave,
@@ -32,8 +34,15 @@ const EditItemQuantityModal: React.FC<EditItemQuantityModalProps> = ({
           <Form.Control
             type="number"
             value={quantity}
-            onChange={(e) => onQuantityChange(Number(e.target.value))}
-            min={0}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (value >= minQuantity) {
+                onQuantityChange(value);
+              } else {
+                onQuantityChange(minQuantity);
+              }
+            }}
+            min={minQuantity}
             autoFocus
           />
         </Form.Group>

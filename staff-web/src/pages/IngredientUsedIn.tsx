@@ -146,7 +146,7 @@ const IngredientUsedIn: React.FC = () => {
     if (!selectedItem || !item) return;
 
     if (quantity <= 0) {
-      setToastVariant("danger");
+      setToastVariant("info");
       setToastMessage("Quantity must be greater than 0.");
       setShowToast(true);
       return;
@@ -214,6 +214,13 @@ const IngredientUsedIn: React.FC = () => {
     ) {
       setToastVariant("info");
       setToastMessage("No changes were made to the item.");
+      setShowToast(true);
+      return;
+    }
+
+    if (editedIngredient.quantity <= 0) {
+      setToastVariant("info");
+      setToastMessage("Quantity must be greater than 0.");
       setShowToast(true);
       return;
     }
@@ -360,6 +367,7 @@ const IngredientUsedIn: React.FC = () => {
             show={showEditModal}
             itemName={selectedItem?.item_name || ""}
             quantity={quantity}
+            minQuantity={1}
             onQuantityChange={setQuantity}
             onClose={() => setShowEditModal(false)}
             onSave={handleSaveQuantity}
