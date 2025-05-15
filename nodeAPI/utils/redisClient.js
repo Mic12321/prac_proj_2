@@ -4,6 +4,10 @@ const client = redis.createClient({
   socket: {
     host: process.env.REDIS_HOST || "127.0.0.1",
     port: parseInt(process.env.REDIS_PORT) || 6379,
+    reconnectStrategy: (retries) => {
+      console.warn(`Redis reconnect attempt #${retries}`);
+      return 10_000;
+    },
   },
   password: process.env.REDIS_PASSWORD || undefined,
 });
