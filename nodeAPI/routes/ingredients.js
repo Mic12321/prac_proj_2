@@ -170,6 +170,10 @@ router.put("/", async (req, res) => {
     return res.status(400).json({ error: "Invalid or missing fields." });
   }
 
+  if (quantity <= 0) {
+    return res.status(400).json({ error: "Quantity must be greater than 0." });
+  }
+
   try {
     const ingredient = await Ingredient.findOne({
       where: {
