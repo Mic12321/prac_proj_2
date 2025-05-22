@@ -12,6 +12,7 @@ import AddCategoryModal from "../components/AddCategoryModal";
 import { useNavigate } from "react-router";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { applySort } from "../utils/sorting";
+import CategorySearchFilter from "../components/CategorySearchFilter";
 
 const CategoryManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -33,19 +34,19 @@ const CategoryManagement: React.FC = () => {
   const [originalCategory, setOriginalCategory] = useState<Category | null>(
     null
   );
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [newCategory, setNewCategory] = useState<string>("");
-  const [newCategoryDescription, setNewCategoryDescription] =
-    useState<string>("");
-  const [categoryNameError, setCategoryNameError] = useState<string>("");
+
+  const [showModal, setShowModal] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [categoryNameError, setCategoryNameError] = useState("");
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
-  const [confirmationModalTitle, setConfirmationModalTitle] =
-    useState<string>("");
-  const [confirmationModalMessage, setConfirmationModalMessage] =
-    useState<string>("");
+  const [confirmationModalTitle, setConfirmationModalTitle] = useState("");
+  const [confirmationModalMessage, setConfirmationModalMessage] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -63,18 +64,37 @@ const CategoryManagement: React.FC = () => {
   }, [fetchCategories]);
 
   useEffect(() => {
-    if (sortConfig && sortConfig.key) {
-      setFilteredCategories(
-        applySort(
-          [...categories],
-          sortConfig?.key,
-          sortConfig?.direction as "asc" | "desc"
-        )
+    let updatedList = [...categories];
+
+    if (searchQuery.trim()) {
+      updatedList = updatedList.filter((category) =>
+        category.category_name.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    } else {
-      setFilteredCategories(categories);
     }
-  }, [categories, sortConfig]);
+
+    if (selectedStatuses.length > 0) {
+      updatedList = updatedList.filter((category) => {
+        const isRemovable = category.linked_item_quantity === 0;
+        const isLinked = category.linked_item_quantity! > 0;
+
+        return selectedStatuses.every((status) => {
+          if (status === "removable") return isRemovable;
+          if (status === "linked") return isLinked;
+          return false;
+        });
+      });
+    }
+
+    if (sortConfig) {
+      updatedList = applySort(
+        updatedList,
+        sortConfig.key,
+        sortConfig.direction
+      );
+    }
+
+    setFilteredCategories(updatedList);
+  }, [categories, sortConfig, searchQuery, selectedStatuses]);
 
   useEffect(() => {
     const message = sessionStorage.getItem("successMessage");
@@ -90,7 +110,6 @@ const CategoryManagement: React.FC = () => {
     let direction: "asc" | "desc" = "asc";
     if (sortConfig?.key === key && sortConfig.direction === "asc")
       direction = "desc";
-
     setSortConfig({ key, direction });
   };
 
@@ -107,7 +126,6 @@ const CategoryManagement: React.FC = () => {
           editedCategory.category_id!,
           editedCategory
         );
-
         if (updateSuccess) {
           const updatedCategories = categories.map((category) =>
             category.category_id === editedCategory.category_id
@@ -115,7 +133,6 @@ const CategoryManagement: React.FC = () => {
               : category
           );
           setCategories(updatedCategories);
-
           setEditedCategory(null);
           setToastVariant("success");
           setToastMessage("Category updated successfully!");
@@ -133,8 +150,8 @@ const CategoryManagement: React.FC = () => {
 
   const handleCancelEdit = () => {
     if (originalCategory) {
-      setCategories((prevCategories) =>
-        prevCategories.map((category) =>
+      setCategories((prev) =>
+        prev.map((category) =>
           category.category_id === originalCategory.category_id
             ? originalCategory
             : category
@@ -170,100 +187,82 @@ const CategoryManagement: React.FC = () => {
     }
     setConfirmationModalTitle("Delete Category");
     setConfirmationModalMessage(
-      `Are you sure you want to delete the category "${category.category_name}"?`
+      `Are you sure you want to delete "${category.category_name}"?`
     );
     setConfirmAction(() => () => handleDeleteConfirmCategory(category));
     setShowConfirmDialog(true);
   };
 
   const handleDeleteConfirmCategory = async (category: Category) => {
-    if (category.linked_item_quantity! > 0) {
-      setToastVariant("danger");
-      setToastMessage("Cannot delete category with linked items.");
-      setShowToast(true);
-      return;
-    }
-
     try {
       setShowConfirmDialog(false);
-      const deletionSuccess = await deleteCategory(category.category_id!);
-      if (deletionSuccess) {
-        const updatedCategories = categories.filter(
-          (item) => item.category_id !== category.category_id
+      const success = await deleteCategory(category.category_id!);
+      if (success) {
+        const updated = categories.filter(
+          (c) => c.category_id !== category.category_id
         );
-        setCategories(updatedCategories);
-
+        setCategories(updated);
         setToastVariant("success");
         setToastMessage("Category deleted successfully!");
         setShowToast(true);
       } else {
         setToastVariant("danger");
-        setToastMessage("Failed to delete category. Please try again.");
+        setToastMessage("Failed to delete category.");
         setShowToast(true);
       }
     } catch (error: any) {
       setToastVariant("danger");
-      setToastMessage(
-        error.message || "Failed to delete category. Please try again."
-      );
+      setToastMessage(error.message || "Delete failed.");
       setShowToast(true);
     }
   };
 
-  const handleDeleteCancel = () => {
-    setShowConfirmDialog(false);
-  };
-
   const handleCategorySubmit = async () => {
-    const trimmedCategory = newCategory.trim();
-    const trimmedDescription = newCategoryDescription.trim();
+    const trimmedName = newCategory.trim();
+    const trimmedDesc = newCategoryDescription.trim();
 
-    if (!trimmedCategory) {
+    if (!trimmedName) {
       setCategoryNameError("Category name is required.");
       return;
     }
 
-    setCategoryNameError("");
-
     try {
-      const existingCategory = categories.find(
-        (category) =>
-          category.category_name.toLowerCase() === trimmedCategory.toLowerCase()
+      const exists = categories.some(
+        (c) => c.category_name.toLowerCase() === trimmedName.toLowerCase()
       );
 
-      if (!existingCategory) {
-        const addSuccess = await addCategory({
-          category_name: trimmedCategory,
-          category_description: trimmedDescription,
+      if (!exists) {
+        const success = await addCategory({
+          category_name: trimmedName,
+          category_description: trimmedDesc,
         });
-
-        if (addSuccess) {
-          setToastVariant("success");
-          setToastMessage("Category added successfully!");
-          setShowToast(true);
-
+        if (success) {
           const updatedList = await getCategories();
           setCategories(updatedList);
+          setToastVariant("success");
+          setToastMessage("Category added successfully!");
         }
       } else {
         setToastVariant("danger");
-        setToastMessage(
-          `Category "${trimmedCategory}" already exists. Please choose a different name.`
-        );
-        setShowToast(true);
+        setToastMessage(`Category "${trimmedName}" already exists.`);
       }
     } catch (error: any) {
       setToastVariant("danger");
-      setToastMessage(
-        error.message || "Failed to add categories. Please try again."
-      );
-      setShowToast(true);
+      setToastMessage(error.message || "Failed to add category.");
     }
 
+    setShowToast(true);
     setNewCategory("");
     setNewCategoryDescription("");
     setShowModal(false);
   };
+
+  const uniqueDescriptions = [
+    "All",
+    ...new Set(
+      categories.map((c) => c.category_description || "").filter(Boolean)
+    ),
+  ];
 
   return (
     <div className="container mt-4">
@@ -276,26 +275,34 @@ const CategoryManagement: React.FC = () => {
       </button>
 
       {categories.length > 0 ? (
-        <CategoryTable
-          categories={filteredCategories}
-          editedCategory={editedCategory}
-          sortConfig={sortConfig}
-          onEditCategory={handleEditCategory}
-          onSaveCategory={handleSaveCategory}
-          onCancelEdit={handleCancelEdit}
-          onSort={handleSort}
-          setEditedCategory={setEditedCategory}
-          navigateToDetail={(categoryId) => {
-            navigate(`/category-detail/${categoryId}`);
-          }}
-          isEditing={true}
-          onSelectCategory={() => {}}
-          showRemoveButton={true}
-          onRemoveCategory={handleRemoveCategory}
-        />
+        <>
+          <CategorySearchFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedStatuses={selectedStatuses}
+            onStatusChange={setSelectedStatuses}
+          />
+
+          <CategoryTable
+            categories={filteredCategories}
+            editedCategory={editedCategory}
+            sortConfig={sortConfig}
+            onEditCategory={handleEditCategory}
+            onSaveCategory={handleSaveCategory}
+            onCancelEdit={handleCancelEdit}
+            onSort={handleSort}
+            setEditedCategory={setEditedCategory}
+            navigateToDetail={(id) => navigate(`/category-detail/${id}`)}
+            isEditing={true}
+            onSelectCategory={() => {}}
+            showRemoveButton={true}
+            onRemoveCategory={handleRemoveCategory}
+          />
+        </>
       ) : (
         <p>No categories found.</p>
       )}
+
       <AddCategoryModal
         show={showModal}
         onClose={() => setShowModal(false)}
@@ -307,6 +314,7 @@ const CategoryManagement: React.FC = () => {
         categoryNameError={categoryNameError}
         setCategoryNameError={setCategoryNameError}
       />
+
       <ToastNotification
         show={showToast}
         onClose={() => setShowToast(false)}
@@ -314,9 +322,10 @@ const CategoryManagement: React.FC = () => {
         variant={toastVariant}
         delay={5000}
       />
+
       <ConfirmationModal
         show={showConfirmDialog}
-        onHide={handleDeleteCancel}
+        onHide={() => setShowConfirmDialog(false)}
         onConfirm={confirmAction ?? (() => {})}
         title={confirmationModalTitle}
         message={confirmationModalMessage}
