@@ -25,6 +25,9 @@ const Order: React.FC = () => {
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
 
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [subtotal, setSubtotal] = useState<number>(0);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
@@ -44,7 +47,7 @@ const Order: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [itemsData, cartData, categoryData] = await Promise.all([
+      const [itemsData, cartResponse, categoryData] = await Promise.all([
         getItemsForSale(),
         getShoppingCart(userId),
         getCategories(),
@@ -53,17 +56,38 @@ const Order: React.FC = () => {
       setItems(itemsData);
       setCategories(categoryData);
 
-      setCart(
-        cartData.reduce(
-          (acc, item) => ({ ...acc, [item.item_id]: Number(item.quantity) }),
-          {} as { [key: number]: number }
-        )
+      const cart = cartResponse.items.reduce(
+        (acc, item) => ({
+          ...acc,
+          [item.item_id]: Number(item.quantity),
+        }),
+        {} as { [key: number]: number }
       );
+
+      setCart(cart);
+      setTotalItems(cartResponse.totalItems);
+      setSubtotal(cartResponse.subtotal);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshCart = async () => {
+    const cartResponse = await getShoppingCart(userId);
+
+    const updatedCart = cartResponse.items.reduce(
+      (acc, item) => ({
+        ...acc,
+        [item.item_id]: Number(item.quantity),
+      }),
+      {} as { [key: number]: number }
+    );
+
+    setCart(updatedCart);
+    setTotalItems(cartResponse.totalItems);
+    setSubtotal(cartResponse.subtotal);
   };
 
   const handleAdd = async (itemId: number) => {
@@ -76,7 +100,7 @@ const Order: React.FC = () => {
         await addCartItem(userId, itemId, 1);
       }
 
-      setCart((prev) => ({ ...prev, [itemId]: newQuantity }));
+      await refreshCart();
     } catch (err: any) {
       setError(err.message);
     }
@@ -88,16 +112,11 @@ const Order: React.FC = () => {
 
       if (removeAll || currentQuantity <= 1) {
         await removeCartItem(userId, itemId);
-        setCart((prev) => {
-          const updatedCart = { ...prev };
-          delete updatedCart[itemId];
-          return updatedCart;
-        });
       } else {
-        const newQuantity = currentQuantity - 1;
-        await updateCartItem(userId, itemId, newQuantity);
-        setCart((prev) => ({ ...prev, [itemId]: newQuantity }));
+        await updateCartItem(userId, itemId, currentQuantity - 1);
       }
+
+      await refreshCart();
     } catch (err: any) {
       setError(err.message);
     }
@@ -126,7 +145,8 @@ const Order: React.FC = () => {
           removeCartItem(userId, Number(itemId))
         )
       );
-      setCart({});
+
+      await refreshCart();
     } catch (err: any) {
       setError(err.message);
     }
@@ -208,6 +228,8 @@ const Order: React.FC = () => {
           onRemove={handleRemove}
           onCheckout={handleCheckout}
           onClearCart={() => setShowConfirmDialog(true)}
+          totalItems={totalItems}
+          subtotal={subtotal}
         />
       </div>
 

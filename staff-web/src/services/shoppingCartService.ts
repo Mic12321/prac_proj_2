@@ -6,12 +6,18 @@ export interface ShoppingCartItem {
   quantity: number;
 }
 
+export interface ShoppingCartResponse {
+  items: ShoppingCartItem[];
+  totalItems: number;
+  subtotal: number;
+}
+
 /**
- * Fetch all shopping cart items for a user
+ * Fetch all shopping cart items and other info for a user
  */
 export const getShoppingCart = async (
   userId: number
-): Promise<ShoppingCartItem[]> => {
+): Promise<ShoppingCartResponse> => {
   const response = await fetch(`${API_ROUTES.SHOPPING_CART_ITEMS}/${userId}`);
   if (!response.ok) throw new Error("Failed to fetch cart items");
   return response.json();

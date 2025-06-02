@@ -16,6 +16,8 @@ interface ShoppingCartPanelProps {
   onCheckout: () => void;
   onClearCart: () => void;
   items: Item[];
+  totalItems: number;
+  subtotal: number;
 }
 
 const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
@@ -25,21 +27,23 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
   onCheckout,
   onClearCart,
   items,
+  totalItems,
+  subtotal,
 }) => {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(true);
 
   const cartPanelWidth = "350";
 
-  const subtotal = Object.entries(cart).reduce((acc, [itemId, quantity]) => {
-    const item = items.find((item) => item.item_id === Number(itemId));
-    return acc + (item ? item.price * quantity : 0);
-  }, 0);
+  // const subtotal = Object.entries(cart).reduce((acc, [itemId, quantity]) => {
+  //   const item = items.find((item) => item.item_id === Number(itemId));
+  //   return acc + (item ? item.price * quantity : 0);
+  // }, 0);
 
-  const totalItems = Object.values(cart).reduce(
-    (acc, quantity) => acc + quantity,
-    0
-  );
+  // const totalItems = Object.values(cart).reduce(
+  //   (acc, quantity) => acc + quantity,
+  //   0
+  // );
 
   const handleClearCart = () => {
     onClearCart();
@@ -82,7 +86,7 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
           </div>
           <p className=""> Total Items: {totalItems}</p>
           <div className="d-flex justify-content-between align-items-center border-bottom">
-            <p className="">Subtotal: ${subtotal.toFixed(2)}</p>
+            <p className="">Subtotal: ${subtotal}</p>
             <button
               className="btn btn-sm btn-danger mb-3"
               onClick={handleClearCart}

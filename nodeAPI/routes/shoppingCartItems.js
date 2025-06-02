@@ -7,6 +7,7 @@ const User = require("../models/User");
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -15,7 +16,32 @@ router.get("/:userId", async (req, res) => {
       include: [{ model: Item }],
     });
 
-    res.json(cartItems);
+    let subtotal = 0;
+    let totalItems = 0;
+
+    const detailedCartItems = cartItems.map((cartItem) => {
+      const item = cartItem.Item;
+      const quantity = parseFloat(cartItem.quantity);
+      const itemPrice = parseFloat(item.price);
+      const itemSubtotal = quantity * itemPrice;
+
+      subtotal += itemSubtotal;
+      totalItems += quantity;
+
+      return {
+        item_id: item.item_id,
+        item_name: item.name,
+        price: itemPrice,
+        quantity,
+        subtotal: itemSubtotal.toFixed(2),
+      };
+    });
+
+    res.json({
+      items: detailedCartItems,
+      totalItems,
+      subtotal: subtotal.toFixed(2),
+    });
   } catch (error) {
     console.error("Error fetching cart:", error);
     res.status(500).json({ error: "Server error" });
