@@ -2,14 +2,26 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import { getOrderDetail, OrderDetailData } from "../services/orderService";
 import OrderItemsList from "../components/OrderItemsList";
+import ToastNotification from "../components/ToastNotification";
 
 const OrderDetail: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<OrderDetailData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "danger" | "info"
+  >("success");
 
-  // Fetch if any mesages stored
   useEffect(() => {
+    const message = sessionStorage.getItem("successMessage");
+    if (message) {
+      setToastVariant("success");
+      setToastMessage(message);
+      setShowToast(true);
+      sessionStorage.removeItem("successMessage");
+    }
     const fetchOrder = async () => {
       try {
         const data = await getOrderDetail(Number(orderId));
@@ -68,6 +80,13 @@ const OrderDetail: React.FC = () => {
       <Link to="/order-history" className="btn btn-secondary mt-3">
         Back to Order History
       </Link>
+      <ToastNotification
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+        variant={toastVariant}
+        delay={5000}
+      />
     </div>
   );
 };
