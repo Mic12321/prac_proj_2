@@ -49,8 +49,19 @@ const OrderDetail: React.FC = () => {
         <strong>Placed At:</strong> {new Date(order.ordertime).toLocaleString()}
       </p>
 
-      <h5 className="mt-4">Items:</h5>
-      <OrderItemsList items={order.OrderItems} />
+      <div className="card mb-4">
+        <div className="card-body">
+          <h5 className="card-title">Order Summary</h5>
+          <div className="row fw-bold mb-2 border-bottom pb-2">
+            <div className="col-auto">Item</div>
+            <div className="col">Name</div>
+            <div className="col text-end">Price</div>
+            <div className="col text-end">Qty</div>
+            <div className="col text-end">Total</div>
+          </div>
+          <OrderItemsList items={order.OrderItems} />
+        </div>
+      </div>
 
       <p>
         <strong>Total:</strong> ${order.price}
