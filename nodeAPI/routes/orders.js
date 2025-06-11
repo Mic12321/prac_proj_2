@@ -1,23 +1,96 @@
 const express = require("express");
 const router = express.Router();
-const Order = require("../models/Orders");
 
-router.get("/", async (req, res) => {
-  try {
-    const orders = await Order.findAll();
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+const Orders = require("../models/Orders");
+const OrderItems = require("../models/OrderItems");
+const ShoppingCartItem = require("../models/ShoppingCartItem");
+const Item = require("../models/Item");
+const Payment = require("../models/Payment");
 
 router.post("/", async (req, res) => {
-  const { user_id, status, price } = req.body;
+  const { userId, paymentMethod, cartValidationData } = req.body;
+
+  if (!userId || !paymentMethod || !Array.isArray(cartValidationData)) {
+    return res.status(400).json({ error: "Missing data for validation" });
+  }
+
   try {
-    const newOrder = await Order.create({ user_id, status, price });
-    res.json(newOrder);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    // 1. Get shopping cart items with price
+    const cartItems = await ShoppingCartItem.findAll({
+      where: { user_id: userId },
+      include: [{ model: Item, attributes: ["price", "item_id"] }],
+    });
+
+    if (cartItems.length === 0) {
+      return res.status(400).json({ error: "Cart is empty" });
+    }
+
+    // Check for mismatch
+    const priceMismatch = cartItems.some((dbItem) => {
+      const inputItem = cartValidationData.find(
+        (i) => i.item_id === dbItem.item_id
+      );
+      if (!inputItem) return true;
+
+      const dbPrice = parseFloat(dbItem.Item.price);
+      const dbQty = parseFloat(dbItem.quantity);
+
+      return (
+        dbPrice !== parseFloat(inputItem.price) ||
+        dbQty !== parseFloat(inputItem.quantity)
+      );
+    });
+
+    if (priceMismatch) {
+      return res
+        .status(400)
+        .json({ error: "Prices or quantities have changed" });
+    }
+
+    // 2. Calculate total price
+    const totalPrice = cartItems.reduce(
+      (sum, item) => sum + item.quantity * parseFloat(item.Item.price),
+      0
+    );
+
+    // 3. Create the order
+    const order = await Orders.create({
+      user_id: userId,
+      status: `paid`,
+      price: totalPrice,
+      ordertime: new Date(),
+      last_updatetime: new Date(),
+    });
+
+    // 4. Create order items
+    const orderItemsData = cartItems.map((cartItem) => ({
+      order_id: order.order_id,
+      item_id: cartItem.item_id,
+      quantity: cartItem.quantity,
+      price_at_purchase: cartItem.Item.price,
+    }));
+
+    await OrderItems.bulkCreate(orderItemsData);
+
+    // 5. Create a payment record
+    await Payment.create({
+      order_id: order.order_id,
+      payment_method: paymentMethod,
+      amount_paid: totalPrice,
+      payment_status: "completed",
+      paid_at: new Date(),
+    });
+
+    // 6. Clear the cart
+    await ShoppingCartItem.destroy({ where: { user_id: userId } });
+
+    return res.json({
+      message: "Order and payment processed successfully",
+      orderId: order.order_id,
+    });
+  } catch (error) {
+    console.error("Order creation error:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 

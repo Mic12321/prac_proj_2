@@ -4,6 +4,8 @@ export interface ShoppingCartItem {
   item_id: number;
   item_name: string;
   quantity: number;
+  subtotal: number;
+  price: number;
 }
 
 export interface ShoppingCartResponse {

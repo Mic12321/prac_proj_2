@@ -6,6 +6,7 @@ const itemRoutes = require("../routes/items");
 const categoryRoutes = require("../routes/category");
 const shoppingCartItemsRoutes = require("../routes/shoppingCartItems");
 const ingredientRoutes = require("../routes/ingredients");
+const checkoutRoutes = require("../routes/checkout");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -16,4 +17,5 @@ module.exports = function (app) {
   app.use("/api/category", categoryRoutes);
   app.use("/api/shopping-cart-items", shoppingCartItemsRoutes);
   app.use("/api/ingredients", ingredientRoutes);
+  app.use("/api/checkout", checkoutRoutes);
 };

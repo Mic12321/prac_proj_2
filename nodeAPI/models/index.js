@@ -9,6 +9,7 @@ const PointsRecord = require("./PointsRecord");
 const Ingredient = require("./Ingredient");
 const Category = require("./Category");
 const ShoppingCartItem = require("./ShoppingCartItem");
+const Payment = require("./Payment");
 
 User.hasMany(Orders, { foreignKey: "user_id" });
 Orders.belongsTo(User, { foreignKey: "user_id" });
@@ -30,6 +31,9 @@ ShoppingCartItem.belongsTo(User, { foreignKey: "user_id" });
 
 Item.hasMany(ShoppingCartItem, { foreignKey: "item_id", onDelete: "CASCADE" });
 ShoppingCartItem.belongsTo(Item, { foreignKey: "item_id" });
+
+Orders.hasMany(Payment, { foreignKey: "order_id" });
+Payment.belongsTo(Orders, { foreignKey: "order_id" });
 
 Item.belongsToMany(Item, {
   through: Ingredient,

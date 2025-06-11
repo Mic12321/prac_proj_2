@@ -16,6 +16,7 @@ interface ShoppingCartPanelProps {
   onCheckout: () => void;
   onClearCart: () => void;
   items: Item[];
+
   totalItems: number;
   subtotal: number;
 }
@@ -34,16 +35,6 @@ const ShoppingCartPanel: React.FC<ShoppingCartPanelProps> = ({
   const [isOpen, setIsOpen] = useState(true);
 
   const cartPanelWidth = "350";
-
-  // const subtotal = Object.entries(cart).reduce((acc, [itemId, quantity]) => {
-  //   const item = items.find((item) => item.item_id === Number(itemId));
-  //   return acc + (item ? item.price * quantity : 0);
-  // }, 0);
-
-  // const totalItems = Object.values(cart).reduce(
-  //   (acc, quantity) => acc + quantity,
-  //   0
-  // );
 
   const handleClearCart = () => {
     onClearCart();

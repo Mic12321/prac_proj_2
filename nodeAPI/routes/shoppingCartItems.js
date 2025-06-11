@@ -31,6 +31,8 @@ router.get("/:userId", async (req, res) => {
       return {
         item_id: item.item_id,
         item_name: item.name,
+        item_description: item.item_description,
+        category_name: item.Category ? item.Category.category_name : undefined,
         price: itemPrice,
         quantity,
         subtotal: itemSubtotal.toFixed(2),

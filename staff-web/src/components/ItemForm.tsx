@@ -127,7 +127,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
     if (type === "number") {
       newValue = parseFloat(value);
-      // newValue = newValue.toFixed(2);
       if (isNaN(newValue)) {
         newValue = 0;
       }
@@ -181,6 +180,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
           });
         }
       }
+
+      // TODO Display message about category already exists.
     } catch (error: any) {
       onError(error.message || "Failed to add categories. Please try again.");
     }
@@ -199,6 +200,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (!formData.category_id || formData.category_id === 0) {
+      onError("Please select a valid category before saving the item.");
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
     try {
       await onSubmit(formData);
@@ -212,14 +219,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const handleToModifyIngredientForItemUsingThisIngredient = () => {
     navigate(`/ingredient/${formData.item_id}`);
   };
-
-  // const handleSaveAddModifyIngredientForItem = () => {
-  //   navigate(`/item/${formData.item_id}/ingredients`);
-  // };
-
-  // const handleSaveAddIngredientForItemUsingThisIngredient = () => {
-  //   navigate(`/ingredient/${formData.item_id}/items-using`);
-  // };
 
   const handleSortItemIngredients = (key: keyof Ingredient) => {
     let direction: "asc" | "desc" = "asc";
@@ -363,6 +362,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           className="form-control"
           value={formData.category_id!}
           onChange={handleCategoryChange}
+          required
         >
           {categories.map((category) => (
             <option key={category.category_id} value={category.category_id}>
@@ -441,13 +441,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
           <p className="text-muted">
             Please add ingredients after adding this new item
           </p>
-          // <button
-          //   type="button"
-          //   className="btn btn-success mt-3"
-          //   onClick={handleSaveAddModifyIngredientForItem}
-          // >
-          //   Save Item & Add Ingredient
-          // </button>
         )}
       </div>
 
@@ -484,13 +477,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
           <p className="text-muted">
             Please add ingredients after adding this new item
           </p>
-          // <button
-          //   type="button"
-          //   className="btn btn-success mt-3"
-          //   onClick={handleSaveAddIngredientForItemUsingThisIngredient}
-          // >
-          //   Save Item & Add Ingredient
-          // </button>
         )}
       </div>
 
