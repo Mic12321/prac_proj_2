@@ -4,10 +4,11 @@ import {
   getShoppingCart,
   ShoppingCartItem,
 } from "../services/shoppingCartService";
-import { placeOrder } from "../services/orderService";
-import tempImg from "../assets/temp_picture.png";
+import { OrderItem, placeOrder } from "../services/orderService";
+// import tempImg from "../assets/temp_picture.png";
 import { useNavigate } from "react-router";
 import ToastNotification from "../components/ToastNotification";
+import OrderItemsList from "../components/OrderItemsList";
 
 const Checkout: React.FC = () => {
   const userId = 1;
@@ -30,6 +31,16 @@ const Checkout: React.FC = () => {
   >("success");
 
   const navigate = useNavigate();
+
+  const mappedItems: OrderItem[] = cartItems.map((item) => ({
+    item_id: item.item_id,
+    quantity: item.quantity,
+    price_at_purchase: item.price,
+    Item: {
+      item_name: item.item_name,
+    },
+    subtotal: (item.price * item.quantity).toFixed(2),
+  }));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,7 +83,7 @@ const Checkout: React.FC = () => {
       setShowToast(true);
 
       sessionStorage.setItem("successMessage", "Checkout successfully!");
-      // navigate(`/order/${order.orderId}`);
+      navigate(`/order-detail/${order.orderId}`);
     } catch (err: any) {
       console.error("Checkout error:", err);
       setToastVariant("danger");
@@ -81,34 +92,6 @@ const Checkout: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const renderCartItems = () => {
-    return cartItems.map((item) => (
-      <div
-        key={item.item_id}
-        className="row align-items-center mb-3 border-bottom pb-2"
-      >
-        <div className="col-auto">
-          <img
-            src={tempImg}
-            alt={item.item_name}
-            className="rounded"
-            style={{ width: "50px", height: "50px", objectFit: "cover" }}
-          />
-        </div>
-        <div className="col">
-          <div className="fw-bold">{item.item_name}</div>
-        </div>
-        <div className="col text-end">
-          <div>${item.price.toFixed(2)}</div>
-        </div>
-        <div className="col text-end">
-          <div>{item.quantity}</div>
-        </div>
-        <div className="col text-end fw-semibold">${item.subtotal}</div>
-      </div>
-    ));
   };
 
   return (
@@ -131,14 +114,7 @@ const Checkout: React.FC = () => {
                 <div className="col text-end">Qty</div>
                 <div className="col text-end">Total</div>
               </div>
-              {renderCartItems()}
-              <hr />
-              <p>
-                Total Items: <strong>{totalItems}</strong>
-              </p>
-              <p>
-                Subtotal: <strong>${subtotal.toFixed(2)}</strong>
-              </p>
+              <OrderItemsList items={mappedItems} />
             </div>
           </div>
 

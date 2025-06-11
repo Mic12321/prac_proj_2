@@ -94,4 +94,122 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/user/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const orders = await Orders.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: OrderItems,
+          include: [{ model: Item }],
+        },
+      ],
+      order: [["ordertime", "DESC"]],
+    });
+
+    return res.json(orders);
+  } catch (error) {
+    console.error("User order fetch error:", error);
+    return res.status(500).json({ error: "Failed to fetch user orders" });
+  }
+});
+
+router.get("/pending", async (req, res) => {
+  try {
+    const orders = await Orders.findAll({
+      where: { status: "pending" },
+      include: [
+        {
+          model: OrderItems,
+          include: [{ model: Item }],
+        },
+      ],
+      order: [["ordertime", "ASC"]],
+    });
+
+    return res.json(orders);
+  } catch (error) {
+    console.error("Pending order fetch error:", error);
+    return res.status(500).json({ error: "Failed to fetch pending orders" });
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const orders = await Orders.findAll({
+      include: [
+        {
+          model: OrderItems,
+          include: [{ model: Item }],
+        },
+      ],
+      order: [["ordertime", "DESC"]],
+    });
+
+    return res.json(orders);
+  } catch (error) {
+    console.error("All orders fetch error:", error);
+    return res.status(500).json({ error: "Failed to fetch all orders" });
+  }
+});
+
+router.get("/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await Orders.findByPk(orderId, {
+      include: [
+        {
+          model: OrderItems,
+          include: [
+            {
+              model: Item,
+              attributes: ["item_name"],
+            },
+          ],
+        },
+        {
+          model: Payment,
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Format response
+    const response = {
+      order_id: order.order_id,
+      user_id: order.user_id,
+      status: order.status,
+      price: order.price,
+      ordertime: order.ordertime,
+      last_updatetime: order.last_updatetime,
+      OrderItems: order.OrderItems.map((orderItem) => ({
+        item_id: orderItem.item_id,
+        quantity: orderItem.quantity,
+        price_at_purchase: orderItem.price_at_purchase,
+        Item: orderItem.Item
+          ? { item_name: orderItem.Item.item_name }
+          : undefined,
+      })),
+      Payments: order.Payments.map((payment) => ({
+        payment_id: payment.payment_id,
+        payment_method: payment.payment_method,
+        amount_paid: payment.amount_paid,
+        payment_status: payment.payment_status,
+        paid_at: payment.paid_at,
+      })),
+    };
+
+    return res.json(response);
+  } catch (err) {
+    console.error("Error fetching order detail:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;

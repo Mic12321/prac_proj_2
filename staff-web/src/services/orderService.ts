@@ -6,6 +6,36 @@ type CartValidationItem = {
   price: number;
 };
 
+export interface OrderItem {
+  item_id: number;
+  quantity: number;
+  price_at_purchase: number;
+  Item?: {
+    item_name: string;
+  };
+}
+
+export interface Order {
+  order_id: number;
+  ordertime: string;
+  price: number;
+  status: string;
+}
+
+export interface PaymentData {
+  payment_id: number;
+  order_id: number;
+  payment_method: string;
+  amount_paid: number;
+  payment_status: string;
+  paid_at: string;
+}
+
+export interface OrderDetailData extends Order {
+  OrderItems: OrderItem[];
+  Payments?: PaymentData[];
+}
+
 export const placeOrder = async (
   userId: number,
   paymentMethod: "card" | "cash",
@@ -24,4 +54,30 @@ export const placeOrder = async (
   }
 
   return data;
+};
+
+export const getUserOrders = async (
+  userId: number
+): Promise<OrderDetailData[]> => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/user/${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch user orders");
+  return res.json();
+};
+
+export const getPendingOrders = async () => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/pending`);
+  if (!res.ok) throw new Error("Failed to fetch pending orders");
+  return res.json();
+};
+
+export const getAllOrders = async () => {
+  const res = await fetch(API_ROUTES.ORDERS);
+  if (!res.ok) throw new Error("Failed to fetch all orders");
+  return res.json();
+};
+
+export const getOrderDetail = async (orderId: number) => {
+  const response = await fetch(`${API_ROUTES.ORDERS}/${orderId}`);
+  if (!response.ok) throw new Error("Failed to fetch order detail");
+  return response.json();
 };

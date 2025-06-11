@@ -20,6 +20,8 @@ import IngredientManagement from "./pages/IngredientManagement";
 import IngredientUsedIn from "./pages/IngredientUsedIn";
 import CategoryManagement from "./pages/CategoryManagement";
 import CategoryDetail from "./pages/CategoryDetail";
+import OrderHistory from "./pages/OrderHistory";
+import OrderDetail from "./pages/OrderDetail";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -187,6 +189,25 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<CategoryDetail />}
+              />
+            }
+          />
+          <Route
+            path="/order-history"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<OrderHistory userId={1} />}
+              />
+            }
+          />
+
+          <Route
+            path="/order-detail/:orderId"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<OrderDetail />}
               />
             }
           />
