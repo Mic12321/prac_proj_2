@@ -9,6 +9,7 @@ import { OrderItem, placeOrder } from "../services/orderService";
 import { useNavigate } from "react-router";
 import ToastNotification from "../components/ToastNotification";
 import OrderItemsList from "../components/OrderItemsList";
+import OrderSummaryTable from "../components/OrderSummaryTable";
 
 const Checkout: React.FC = () => {
   const userId = 1;
@@ -104,19 +105,7 @@ const Checkout: React.FC = () => {
         <p className="text-danger">Error: {error}</p>
       ) : (
         <>
-          <div className="card mb-4">
-            <div className="card-body">
-              <h5 className="card-title">Order Summary</h5>
-              <div className="row fw-bold mb-2 border-bottom pb-2">
-                <div className="col-auto">Item</div>
-                <div className="col">Name</div>
-                <div className="col text-end">Price</div>
-                <div className="col text-end">Qty</div>
-                <div className="col text-end">Total</div>
-              </div>
-              <OrderItemsList items={mappedItems} />
-            </div>
-          </div>
+          <OrderSummaryTable items={mappedItems} />
 
           <div className="d-flex justify-content-between mb-3">
             <button
