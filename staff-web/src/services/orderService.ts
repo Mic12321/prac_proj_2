@@ -36,6 +36,11 @@ export interface OrderDetailData extends Order {
   Payments?: PaymentData[];
 }
 
+export interface StaffOrderDetailData extends OrderDetailData {
+  user_id: number;
+  staff_id?: number;
+}
+
 export const placeOrder = async (
   userId: number,
   paymentMethod: "card" | "cash",
@@ -80,4 +85,14 @@ export const getOrderDetail = async (orderId: number) => {
   const response = await fetch(`${API_ROUTES.ORDERS}/${orderId}`);
   if (!response.ok) throw new Error("Failed to fetch order detail");
   return response.json();
+};
+
+export const pickOrder = async (orderId: number, staffId: number) => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/${orderId}/pick`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ staff_id: staffId, status: "pending" }),
+  });
+  if (!res.ok) throw new Error("Failed to pick order");
+  return res.json();
 };
