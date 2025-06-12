@@ -10,6 +10,7 @@ const Ingredient = require("./Ingredient");
 const Category = require("./Category");
 const ShoppingCartItem = require("./ShoppingCartItem");
 const Payment = require("./Payment");
+const OrderProcessing = require("./OrderProcessing");
 
 User.hasMany(Orders, { foreignKey: "user_id" });
 Orders.belongsTo(User, { foreignKey: "user_id" });
@@ -34,6 +35,12 @@ ShoppingCartItem.belongsTo(Item, { foreignKey: "item_id" });
 
 Orders.hasMany(Payment, { foreignKey: "order_id" });
 Payment.belongsTo(Orders, { foreignKey: "order_id" });
+
+Orders.hasMany(OrderProcessing, { foreignKey: "order_id" });
+OrderProcessing.belongsTo(Orders, { foreignKey: "order_id" });
+
+User.hasMany(OrderProcessing, { foreignKey: "staff_id" });
+OrderProcessing.belongsTo(User, { as: "Staff", foreignKey: "staff_id" });
 
 Item.belongsToMany(Item, {
   through: Ingredient,
@@ -89,4 +96,5 @@ module.exports = {
   Ingredient,
   Category,
   ShoppingCartItem,
+  OrderProcessing,
 };

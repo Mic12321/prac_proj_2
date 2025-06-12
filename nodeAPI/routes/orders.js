@@ -6,6 +6,8 @@ const OrderItems = require("../models/OrderItems");
 const ShoppingCartItem = require("../models/ShoppingCartItem");
 const Item = require("../models/Item");
 const Payment = require("../models/Payment");
+const OrderProcessing = require("../models/OrderProcessing");
+const User = require("../models/User");
 
 router.post("/", async (req, res) => {
   const { userId, paymentMethod, cartValidationData } = req.body;
@@ -116,10 +118,51 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
+router.post("/:orderId/pick", async (req, res) => {
+  const { orderId } = req.params;
+  const { staff_id } = req.body;
+
+  if (!staff_id) {
+    return res.status(400).json({ error: "Staff ID is required" });
+  }
+
+  try {
+    // 1. Check if the order exists and is eligible
+    const order = await Orders.findByPk(orderId);
+    if (!order || order.status !== "paid") {
+      return res.status(400).json({ error: "Invalid or already picked order" });
+    }
+
+    // 2. Prevent multiple staff from picking the same order
+    const alreadyPicked = await OrderProcessing.findOne({
+      where: { order_id: orderId },
+    });
+    if (alreadyPicked) {
+      return res.status(400).json({ error: "Order already picked" });
+    }
+
+    // 3. Create order processing record
+    await OrderProcessing.create({
+      order_id: orderId,
+      staff_id,
+      status: "picked",
+      picked_at: new Date(),
+    });
+
+    // 4. Update order status if needed
+    await order.update({ status: "processing", last_updatetime: new Date() });
+
+    res.json({ message: `Order ${orderId} picked by staff ${staff_id}` });
+  } catch (error) {
+    console.error("Error in picking order:", error);
+    res.status(500).json({ error: "Failed to assign order to staff" });
+  }
+});
+
 router.get("/pending", async (req, res) => {
   try {
     const orders = await Orders.findAll({
-      where: { status: "pending" },
+      where: { status: "paid" },
       include: [
         {
           model: OrderItems,
@@ -172,6 +215,16 @@ router.get("/:orderId", async (req, res) => {
         },
         {
           model: Payment,
+        },
+        {
+          model: OrderProcessing,
+          include: [
+            {
+              model: User,
+              as: "Staff",
+              attributes: ["user_id", "username"],
+            },
+          ],
         },
       ],
     });
