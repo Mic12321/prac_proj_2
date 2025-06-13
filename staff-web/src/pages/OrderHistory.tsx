@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getUserOrders, OrderDetailData } from "../services/orderService";
+import { useNavigate } from "react-router";
 
 interface OrderHistoryProps {
   userId: number;
@@ -9,6 +10,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
   const [orders, setOrders] = useState<OrderDetailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -50,7 +53,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
             </p>
 
             {order.OrderItems?.length ? (
-              <ul className="mb-0">
+              <ul className="mb-2">
                 {order.OrderItems.map((item) => (
                   <li key={item.item_id}>
                     {item.Item?.item_name || "Unnamed Item"} × {item.quantity} @
@@ -59,8 +62,15 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted">No items found in this order.</p>
+              <p className="text-muted mb-2">No items found in this order.</p>
             )}
+
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate(`/order-detail/${order.order_id}`)}
+            >
+              View Order Detail
+            </button>
           </div>
         ))}
       </div>

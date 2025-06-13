@@ -5,6 +5,7 @@ import orderImg from "../assets/order.png";
 import pendingImg from "../assets/pending.png";
 import analysisImg from "../assets/analysis.png";
 import accountMangementImg from "../assets/account_management.png";
+import tempImg from "../assets/temp_picture.png";
 
 interface HomeProps {
   isAdmin: boolean;
@@ -35,6 +36,14 @@ const Home: React.FC<HomeProps> = ({ isAdmin }) => {
           displayName="View Pending Orders"
           route="/pending-orders"
         />
+
+        <DashboardButton
+          image={tempImg}
+          label="Order History Button"
+          displayName="View Order History"
+          route="/order-history"
+        />
+
         {isAdmin && (
           <DashboardButton
             image={analysisImg}

@@ -5,10 +5,8 @@ import {
   ShoppingCartItem,
 } from "../services/shoppingCartService";
 import { OrderItem, placeOrder } from "../services/orderService";
-// import tempImg from "../assets/temp_picture.png";
 import { useNavigate } from "react-router";
 import ToastNotification from "../components/ToastNotification";
-import OrderItemsList from "../components/OrderItemsList";
 import OrderSummaryTable from "../components/OrderSummaryTable";
 
 const Checkout: React.FC = () => {
