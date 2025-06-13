@@ -39,6 +39,15 @@ export interface OrderDetailData extends Order {
 export interface StaffOrderDetailData extends OrderDetailData {
   user_id: number;
   staff_id?: number;
+  OrderProcessings: {
+    staff_id: number;
+    picked_at: string;
+    status: string;
+    Staff?: {
+      user_id: number;
+      username: string;
+    };
+  }[];
 }
 
 export const placeOrder = async (
@@ -94,5 +103,13 @@ export const pickOrder = async (orderId: number, staffId: number) => {
     body: JSON.stringify({ staff_id: staffId, status: "pending" }),
   });
   if (!res.ok) throw new Error("Failed to pick order");
+  return res.json();
+};
+
+export const getPickedOrders = async (
+  staffId: number
+): Promise<StaffOrderDetailData[]> => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/staff/${staffId}/orders`);
+  if (!res.ok) throw new Error("Failed to fetch picked orders");
   return res.json();
 };

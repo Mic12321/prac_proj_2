@@ -44,6 +44,13 @@ const Home: React.FC<HomeProps> = ({ isAdmin }) => {
           route="/order-history"
         />
 
+        <DashboardButton
+          image={tempImg}
+          label="Picked Orders Button"
+          displayName="View Picked Orders"
+          route="/staff/orders"
+        />
+
         {isAdmin && (
           <DashboardButton
             image={analysisImg}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import { getOrderDetail, OrderDetailData } from "../services/orderService";
-import OrderItemsList from "../components/OrderItemsList";
 import ToastNotification from "../components/ToastNotification";
 import OrderSummaryTable from "../components/OrderSummaryTable";
 

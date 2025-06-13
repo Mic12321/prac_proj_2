@@ -8,6 +8,7 @@ const Item = require("../models/Item");
 const Payment = require("../models/Payment");
 const OrderProcessing = require("../models/OrderProcessing");
 const User = require("../models/User");
+const { Op } = require("sequelize");
 
 router.post("/", async (req, res) => {
   const { userId, paymentMethod, cartValidationData } = req.body;
@@ -134,11 +135,16 @@ router.post("/:orderId/pick", async (req, res) => {
     }
 
     // 2. Prevent multiple staff from picking the same order
-    const alreadyPicked = await OrderProcessing.findOne({
-      where: { order_id: orderId },
+    const activeProcessing = await OrderProcessing.findOne({
+      where: {
+        order_id: orderId,
+        status: { [Op.not]: "cancelled" }, // Only block if not cancelled
+      },
     });
-    if (alreadyPicked) {
-      return res.status(400).json({ error: "Order already picked" });
+    if (activeProcessing) {
+      return res
+        .status(400)
+        .json({ error: "Order already picked by someone else" });
     }
 
     // 3. Create order processing record
@@ -149,7 +155,7 @@ router.post("/:orderId/pick", async (req, res) => {
       picked_at: new Date(),
     });
 
-    // 4. Update order status if needed
+    // 4. Update the order status
     await order.update({ status: "processing", last_updatetime: new Date() });
 
     res.json({ message: `Order ${orderId} picked by staff ${staff_id}` });
@@ -262,6 +268,47 @@ router.get("/:orderId", async (req, res) => {
   } catch (err) {
     console.error("Error fetching order detail:", err);
     return res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/staff/:staffId/orders", async (req, res) => {
+  const { staffId } = req.params;
+
+  try {
+    const orders = await Orders.findAll({
+      include: [
+        {
+          model: OrderProcessing,
+          where: {
+            staff_id: staffId,
+            status: { [Op.not]: "cancelled" },
+          },
+          required: true,
+          include: [
+            {
+              model: User,
+              as: "Staff",
+              attributes: ["user_id", "username"],
+            },
+          ],
+        },
+        {
+          model: OrderItems,
+          include: [
+            {
+              model: Item,
+              attributes: ["item_name"],
+            },
+          ],
+        },
+      ],
+      order: [["order_id", "DESC"]],
+    });
+
+    return res.json(orders);
+  } catch (error) {
+    console.error("Error fetching picked orders:", error);
+    res.status(500).json({ error: "Failed to fetch picked orders" });
   }
 });
 

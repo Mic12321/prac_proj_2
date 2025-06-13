@@ -18,7 +18,7 @@ const OrderProcessing = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("picked", "in_progress", "completed"),
+      type: DataTypes.ENUM("picked", "in_progress", "completed", "cancelled"),
       defaultValue: "picked",
     },
     picked_at: {

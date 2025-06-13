@@ -22,6 +22,7 @@ import CategoryManagement from "./pages/CategoryManagement";
 import CategoryDetail from "./pages/CategoryDetail";
 import OrderHistory from "./pages/OrderHistory";
 import OrderDetail from "./pages/OrderDetail";
+import PickedOrders from "./pages/PickedOrders";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -208,6 +209,16 @@ function App() {
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
                 element={<OrderDetail />}
+              />
+            }
+          />
+
+          <Route
+            path="/staff/orders"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                element={<PickedOrders staffId={1} />}
               />
             }
           />

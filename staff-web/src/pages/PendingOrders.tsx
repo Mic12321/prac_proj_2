@@ -5,11 +5,18 @@ import {
   StaffOrderDetailData,
 } from "../services/orderService";
 import OrderSummaryTable from "../components/OrderSummaryTable";
+import ConfirmationModal from "../components/ConfirmationModal";
+import { useNavigate } from "react-router";
 
 const PendingOrders: React.FC = () => {
   const [orders, setOrders] = useState<StaffOrderDetailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [pickedOrderId, setPickedOrderId] = useState<number | null>(null);
+
+  const navigate = useNavigate();
 
   //
   const staffId = 1;
@@ -29,20 +36,24 @@ const PendingOrders: React.FC = () => {
     fetchOrders();
   }, []);
 
-  const handlePickOrder = async (
-    orderId: number,
-    staffId: number,
-    onSuccess?: () => void,
-    onError?: (error: string) => void
-  ) => {
+  const handlePickOrder = async (orderId: number, staffId: number) => {
     try {
       await pickOrder(orderId, staffId);
       console.log(`Order ${orderId} picked by staff ${staffId}`);
-      if (onSuccess) onSuccess();
+      setPickedOrderId(orderId);
+      setShowModal(true);
     } catch (error: any) {
       console.error("Error picking order:", error);
-      if (onError) onError(error.message || "Failed to pick order");
+      setError(error.message || "Failed to pick order");
     }
+  };
+
+  const handleModalConfirm = () => {
+    navigate("/staff/orders");
+  };
+
+  const handleModalCancel = () => {
+    setShowModal(false);
   };
 
   if (loading) return <p>Loading paid orders...</p>;
@@ -71,6 +82,17 @@ const PendingOrders: React.FC = () => {
           </button>
         </div>
       ))}
+      <ConfirmationModal
+        show={showModal}
+        onHide={handleModalCancel}
+        onConfirm={handleModalConfirm}
+        title="Order Picked!"
+        message="Do you want to continue picking more orders or view your picked orders?"
+        cancelButtonLabel="Continue Picking"
+        confirmButtonLabel="Go to Picked Orders"
+        cancelButtonClass="btn btn-secondary"
+        confirmButtonClass="btn btn-primary"
+      />
     </div>
   );
 };
