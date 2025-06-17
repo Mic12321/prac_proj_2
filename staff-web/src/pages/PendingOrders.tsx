@@ -40,6 +40,12 @@ const PendingOrders: React.FC = () => {
     try {
       await pickOrder(orderId, staffId);
       console.log(`Order ${orderId} picked by staff ${staffId}`);
+
+      // Remove picked order from state
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order.order_id !== orderId)
+      );
+
       setPickedOrderId(orderId);
       setShowModal(true);
     } catch (error: any) {
