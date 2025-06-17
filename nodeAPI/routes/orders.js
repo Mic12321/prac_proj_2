@@ -147,7 +147,19 @@ router.post("/:orderId/pick", async (req, res) => {
         .json({ error: "Order already picked by someone else" });
     }
 
-    // 3. Create order processing record
+    // 3. Close any existing active processing for the staff on this order
+    await OrderProcessing.update(
+      { status: "stop_picking" },
+      {
+        where: {
+          order_id: orderId,
+          staff_id,
+          status: { [Op.in]: ["picked", "processing"] },
+        },
+      }
+    );
+
+    // 4. Create a fresh order processing entry
     await OrderProcessing.create({
       order_id: orderId,
       staff_id,
@@ -281,7 +293,7 @@ router.get("/staff/:staffId/orders", async (req, res) => {
           model: OrderProcessing,
           where: {
             staff_id: staffId,
-            status: { [Op.not]: "cancelled" },
+            status: { [Op.in]: ["picked", "processing"] },
           },
           required: true,
           include: [
@@ -309,6 +321,89 @@ router.get("/staff/:staffId/orders", async (req, res) => {
   } catch (error) {
     console.error("Error fetching picked orders:", error);
     res.status(500).json({ error: "Failed to fetch picked orders" });
+  }
+});
+
+// Complete order
+router.post("/:orderId/complete", async (req, res) => {
+  const { orderId } = req.params;
+  const { staff_id } = req.body;
+
+  try {
+    const order = await Orders.findByPk(orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    // Update order status
+    await order.update({ status: "completed", last_updatetime: new Date() });
+
+    // Update the processing record
+    await OrderProcessing.update(
+      { status: "completed" },
+      { where: { order_id: orderId, staff_id } }
+    );
+
+    res.json({ message: `Order ${orderId} completed by staff ${staff_id}` });
+  } catch (err) {
+    console.error("Complete order error:", err);
+    res.status(500).json({ error: "Failed to complete order" });
+  }
+});
+
+router.post("/:orderId/cancel", async (req, res) => {
+  const { orderId } = req.params;
+  const { staff_id } = req.body;
+
+  try {
+    const order = await Orders.findByPk(orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    // Mark order back to 'paid'
+    await order.update({ status: "paid", last_updatetime: new Date() });
+
+    await OrderProcessing.update(
+      { status: "cancelled" },
+      {
+        where: {
+          order_id: orderId,
+          staff_id,
+          status: { [Op.in]: ["picked", "processing"] },
+        },
+      }
+    );
+
+    res.json({ message: `Order ${orderId} cancelled by staff ${staff_id}` });
+  } catch (err) {
+    console.error("Cancel order error:", err);
+    res.status(500).json({ error: "Failed to cancel order" });
+  }
+});
+
+router.post("/:orderId/stop_picking", async (req, res) => {
+  const { orderId } = req.params;
+  const { staff_id } = req.body;
+
+  try {
+    const order = await Orders.findByPk(orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    // Mark order back to 'paid'
+    await order.update({ status: "paid", last_updatetime: new Date() });
+
+    await OrderProcessing.update(
+      { status: "stop_picking" },
+      {
+        where: {
+          order_id: orderId,
+          staff_id,
+          status: { [Op.in]: ["picked", "processing"] },
+        },
+      }
+    );
+
+    res.json({ message: `Order ${orderId} cancelled by staff ${staff_id}` });
+  } catch (err) {
+    console.error("Cancel order error:", err);
+    res.status(500).json({ error: "Failed to cancel order" });
   }
 });
 

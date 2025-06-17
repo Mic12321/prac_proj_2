@@ -113,3 +113,23 @@ export const getPickedOrders = async (
   if (!res.ok) throw new Error("Failed to fetch picked orders");
   return res.json();
 };
+
+export const completeOrder = async (orderId: number, staffId: number) => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/${orderId}/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ staff_id: staffId }),
+  });
+  if (!res.ok) throw new Error("Failed to complete order");
+  return res.json();
+};
+
+export const cancelOrder = async (orderId: number, staffId: number) => {
+  const res = await fetch(`${API_ROUTES.ORDERS}/${orderId}/cancel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ staff_id: staffId }),
+  });
+  if (!res.ok) throw new Error("Failed to cancel order");
+  return res.json();
+};
