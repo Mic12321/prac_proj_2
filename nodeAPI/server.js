@@ -4,30 +4,30 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 require("./utils/redisClient");
+const { ensureAdminExists } = require("./utils/ensureAdmin");
 
 const PORT = process.env.PORT || 3000;
 
-sequelize
-  .authenticate()
-  .then(() => {
+(async () => {
+  try {
+    await sequelize.authenticate();
     console.log("Connection has been established successfully.");
-    return sequelize.sync();
-  })
-  .then(() => {
-    console.log("Database & tables has been created!");
-  })
-  .catch((err) => {
-    console.error("Unable to connect to the database or sync tables:", err);
-  });
+    await sequelize.sync();
+    console.log("Database & tables have been created!");
 
-if (process.env.NODE_ENV === "development") {
-  app.use(cors());
-}
+    await ensureAdminExists();
 
-app.use(express.json());
+    if (process.env.NODE_ENV === "development") {
+      app.use(cors());
+    }
 
-require("./startup/routes")(app);
+    app.use(express.json());
+    require("./startup/routes")(app);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+})();

@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
+const bcrypt = require("bcrypt");
 
 const User = sequelize.define(
   "User",
@@ -42,5 +43,21 @@ const User = sequelize.define(
     timestamps: false,
   }
 );
+
+User.beforeCreate(async (user) => {
+  if (user.password) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});
+
+User.beforeUpdate(async (user) => {
+  if (user.changed("password")) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});
+
+User.prototype.verifyPassword = async function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
 module.exports = User;

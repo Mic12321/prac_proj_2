@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { login } from "../services/authService";
 import logo from "../assets/logo.png";
 
 interface LoginProps {
@@ -13,7 +14,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setIsAdmin }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!username || !password) {
@@ -21,16 +22,17 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setIsAdmin }) => {
       return;
     }
 
-    console.log("Logging in with:", { username, password });
-
     setError("");
-    setUsername("");
-    setPassword("");
 
-    const isAdminUser = username === "admin";
-    setIsAdmin(isAdminUser);
+    const { user, error: loginError } = await login({ username, password });
+
+    if (loginError) {
+      setError(loginError);
+      return;
+    }
 
     setIsAuthenticated(true);
+    setIsAdmin(user?.role === "admin");
 
     navigate("/home");
   };
