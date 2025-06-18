@@ -1,7 +1,13 @@
 import { API_ROUTES } from "../config/apiConfig";
 
+interface User {
+  user_id: number;
+  username: string;
+  role: "client" | "staff" | "admin";
+}
+
 interface LoginResponse {
-  user: { user_id: number; username: string; role: string } | null;
+  user: User | null;
   token?: string;
   error?: string;
 }
@@ -16,7 +22,7 @@ export async function login({
   password,
 }: LoginCredentials): Promise<LoginResponse> {
   try {
-    const response = await fetch(`${API_ROUTES.USERS}/login`, {
+    const response = await fetch(`${API_ROUTES.AUTH}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,6 +36,8 @@ export async function login({
     }
 
     const data = await response.json();
+    console.log("Login successful:", data);
+
     return data;
   } catch (err) {
     return { error: "Server error, please try again later.", user: null };

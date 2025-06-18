@@ -7,18 +7,19 @@ import {
   cancelOrder,
 } from "../services/orderService";
 import OrderSummaryTable from "../components/OrderSummaryTable";
+import { useAuth } from "../context/AuthContext";
 
-interface PickedOrdersProps {
-  staffId: number;
-}
-
-const PickedOrders: React.FC<PickedOrdersProps> = ({ staffId }) => {
+const PickedOrders: React.FC = () => {
+  const { user } = useAuth();
+  const staffId = user?.user_id;
   const [orders, setOrders] = useState<StaffOrderDetailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!staffId) return; // Guard
+
     const fetchPickedOrders = async () => {
       try {
         const data = await getPickedOrders(staffId);
@@ -34,6 +35,8 @@ const PickedOrders: React.FC<PickedOrdersProps> = ({ staffId }) => {
   }, [staffId]);
 
   const handleCompleteOrder = async (orderId: number) => {
+    if (!staffId) return; // Guard
+
     try {
       await completeOrder(orderId, staffId);
       const updatedOrders = await getPickedOrders(staffId);
@@ -44,6 +47,7 @@ const PickedOrders: React.FC<PickedOrdersProps> = ({ staffId }) => {
   };
 
   const handleStopPickingOrder = async (orderId: number) => {
+    if (!staffId) return; // Guard
     try {
       await cancelOrder(orderId, staffId);
       const updatedOrders = await getPickedOrders(staffId);

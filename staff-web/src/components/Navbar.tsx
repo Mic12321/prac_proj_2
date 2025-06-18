@@ -1,20 +1,19 @@
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface NavbarProps {
-  setIsAuthenticated: (auth: boolean) => void;
-  username: string;
   setNavbarHeight: (height: number) => void; //
 }
 
-const Navbar: React.FC<NavbarProps> = ({
-  setIsAuthenticated,
-  username,
-  setNavbarHeight,
-}) => {
+const Navbar: React.FC<NavbarProps> = ({ setNavbarHeight }) => {
   const navigate = useNavigate();
   const navbarRef = useRef<HTMLElement | null>(null);
+
+  const { user, logout } = useAuth();
+
+  if (!user) return null;
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -31,11 +30,6 @@ const Navbar: React.FC<NavbarProps> = ({
     };
   }, [setNavbarHeight]);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
-
   return (
     <nav
       ref={navbarRef}
@@ -47,8 +41,8 @@ const Navbar: React.FC<NavbarProps> = ({
           Company Name
         </Link>
         <div className="d-flex align-items-center">
-          <span className="text-white me-3">Hi, {username}</span>
-          <button className="btn btn-danger" onClick={handleLogout}>
+          <span className="text-white me-3">Hi, {user.username}</span>
+          <button className="btn btn-danger" onClick={logout}>
             Logout
           </button>
         </div>

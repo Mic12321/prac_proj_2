@@ -7,6 +7,7 @@ import {
 import OrderSummaryTable from "../components/OrderSummaryTable";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
 
 const PendingOrders: React.FC = () => {
   const [orders, setOrders] = useState<StaffOrderDetailData[]>([]);
@@ -18,8 +19,8 @@ const PendingOrders: React.FC = () => {
 
   const navigate = useNavigate();
 
-  //
-  const staffId = 1;
+  const { user } = useAuth();
+  const staffId = user?.user_id;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,6 +38,7 @@ const PendingOrders: React.FC = () => {
   }, []);
 
   const handlePickOrder = async (orderId: number, staffId: number) => {
+    if (!staffId) return; // Guard for no user
     try {
       await pickOrder(orderId, staffId);
       console.log(`Order ${orderId} picked by staff ${staffId}`);
@@ -55,7 +57,7 @@ const PendingOrders: React.FC = () => {
   };
 
   const handleModalConfirm = () => {
-    navigate("/staff/orders");
+    navigate("/staff/picked-orders");
   };
 
   const handleModalCancel = () => {
@@ -65,6 +67,8 @@ const PendingOrders: React.FC = () => {
   if (loading) return <p>Loading paid orders...</p>;
   if (error) return <p className="text-danger">Error: {error}</p>;
   if (orders.length === 0) return <p>No paid orders found.</p>;
+  if (!staffId)
+    return <p className="text-danger">You must be logged in to view orders.</p>;
 
   return (
     <div className="container mt-4">

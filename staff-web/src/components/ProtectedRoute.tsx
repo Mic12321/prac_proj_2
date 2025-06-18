@@ -1,16 +1,29 @@
 import React from "react";
 import { Navigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
 
 interface ProtectedRouteProps {
-  isAuthenticated: boolean;
-  element: React.JSX.Element;
+  children: React.ReactElement;
+  allowedRoles?: string[];
+  redirectPath?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  isAuthenticated,
-  element,
+  children,
+  allowedRoles,
+  redirectPath = "/login",
 }) => {
-  return isAuthenticated ? element : <Navigate to="/login" replace />;
+  const { isAuthenticated, user } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getUserOrders, OrderDetailData } from "../services/orderService";
 import { useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
 
-interface OrderHistoryProps {
-  userId: number;
-}
-
-const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
+const OrderHistory: React.FC = () => {
+  const { user } = useAuth();
+  const userId = user?.user_id;
   const [orders, setOrders] = useState<OrderDetailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +13,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ userId }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!userId) return; // Guard for no user
+
     const fetchOrders = async () => {
       try {
         const data = await getUserOrders(userId);

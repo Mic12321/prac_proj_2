@@ -8,9 +8,11 @@ import { OrderItem, placeOrder } from "../services/orderService";
 import { useNavigate } from "react-router";
 import ToastNotification from "../components/ToastNotification";
 import OrderSummaryTable from "../components/OrderSummaryTable";
+import { useAuth } from "../context/AuthContext";
 
 const Checkout: React.FC = () => {
-  const userId = 1;
+  const { user } = useAuth();
+  const userId = user?.user_id;
   const [cartItems, setCartItems] = useState<ShoppingCartItem[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -42,6 +44,7 @@ const Checkout: React.FC = () => {
   }));
 
   useEffect(() => {
+    if (!userId) return; // Guard for no user
     const fetchData = async () => {
       try {
         const cartResponse = await getShoppingCart(userId);
@@ -68,6 +71,7 @@ const Checkout: React.FC = () => {
 
   const handleCheckout = async (paymentMethod: "card" | "cash") => {
     if (isProcessing || isPaid) return;
+    if (!userId) return; // Guard for no user
 
     setIsProcessing(true);
     try {

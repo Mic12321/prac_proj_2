@@ -23,192 +23,36 @@ import CategoryDetail from "./pages/CategoryDetail";
 import OrderHistory from "./pages/OrderHistory";
 import OrderDetail from "./pages/OrderDetail";
 import PickedOrders from "./pages/PickedOrders";
+import Unauthorized from "./pages/Unauthorized";
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+const AppRoutes = () => {
+  const { isAuthenticated, user, logout } = useAuth();
   const [navbarHeight, setNavbarHeight] = useState(0);
 
-  //
-  const [username, setUsername] = useState("testUsername");
-
   return (
-    <Router>
-      {isAuthenticated && (
-        <Navbar
-          setIsAuthenticated={setIsAuthenticated}
-          username={username}
-          setNavbarHeight={setNavbarHeight}
-        />
-      )}
+    <>
+      {isAuthenticated && user && <Navbar setNavbarHeight={setNavbarHeight} />}
 
       <div
         className="container mt-4"
         style={{ paddingTop: `${navbarHeight}px` }}
       >
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<Home isAdmin={isAdmin} />}
-              />
-            }
-          />
-
-          <Route
-            path="/login"
-            element={
-              <Login
-                setIsAuthenticated={setIsAuthenticated}
-                setIsAdmin={setIsAdmin}
-              />
-            }
-          />
-
+          <Route path="/" element={<ProtectedRoute children={<Home />} />} />
           <Route
             path="/home"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<Home isAdmin={isAdmin} />}
-              />
-            }
+            element={<ProtectedRoute children={<Home />} />}
           />
+          <Route path="/login" element={<Login />} />
+
           <Route
-            path="/stock-management"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<StockManagement />}
-              />
-            }
-          />
-          <Route
-            path="/analysis"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<Analysis />}
-              />
-            }
-          />
-          <Route
-            path="/order"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<Order />}
-              />
-            }
-          />
-          <Route
-            path="/pending-orders"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<PendingOrders />}
-              />
-            }
-          />
-          <Route // Only admin can access, has to moodify in the future
             path="/account-management"
             element={
               <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<AccountManagement />}
-              />
-            }
-          />
-          <Route
-            path="/search-item"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<SearchItem />}
-              />
-            }
-          />
-          <Route
-            path="/add-item"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<AddItem />}
-              />
-            }
-          />
-          <Route
-            path="/item-detail/:itemId"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<ItemDetail />}
-              />
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<Checkout />}
-              />
-            }
-          />
-          <Route
-            path="/item/:itemId/ingredients"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<IngredientManagement />}
-              />
-            }
-          />
-          <Route
-            path="/ingredient/:ingredientId"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<IngredientUsedIn />}
-              />
-            }
-          />
-          <Route
-            path="/category-management"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<CategoryManagement />}
-              />
-            }
-          />
-          <Route
-            path="/category-detail/:categoryId"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<CategoryDetail />}
-              />
-            }
-          />
-          <Route
-            path="/order-history"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<OrderHistory userId={1} />}
-              />
-            }
-          />
-
-          <Route
-            path="/order-detail/:orderId"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<OrderDetail />}
+                allowedRoles={["admin"]}
+                children={<AccountManagement />}
               />
             }
           />
@@ -217,14 +61,165 @@ function App() {
             path="/staff/orders"
             element={
               <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                element={<PickedOrders staffId={1} />}
+                allowedRoles={["admin", "staff"]}
+                children={<PendingOrders />}
               />
             }
           />
+
+          <Route
+            path="/stock-management"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<StockManagement />}
+              />
+            }
+          />
+
+          <Route
+            path="/analysis"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin"]}
+                children={<Analysis />}
+              />
+            }
+          />
+
+          <Route
+            path="/order"
+            element={<ProtectedRoute children={<Order />} />}
+          />
+
+          <Route
+            path="/pending-orders"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<PendingOrders />}
+              />
+            }
+          />
+
+          <Route
+            path="/search-item"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<SearchItem />}
+              />
+            }
+          />
+
+          <Route
+            path="/add-item"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<AddItem />}
+              />
+            }
+          />
+
+          <Route
+            path="/item-detail/:itemId"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<ItemDetail />}
+              />
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={<ProtectedRoute children={<Checkout />} />}
+          />
+
+          <Route
+            path="/item/:itemId/ingredients"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<IngredientManagement />}
+              />
+            }
+          />
+
+          <Route
+            path="/ingredient/:ingredientId"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<IngredientUsedIn />}
+              />
+            }
+          />
+
+          <Route
+            path="/category-management"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin"]}
+                children={<CategoryManagement />}
+              />
+            }
+          />
+
+          <Route
+            path="/category-detail/:categoryId"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin"]}
+                children={<CategoryDetail />}
+              />
+            }
+          />
+
+          <Route
+            path="/order-history"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<OrderHistory />}
+              />
+            }
+          />
+
+          <Route
+            path="/order-detail/:orderId"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<OrderDetail />}
+              />
+            }
+          />
+
+          <Route
+            path="/staff/picked-orders"
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "staff"]}
+                children={<PickedOrders />}
+              />
+            }
+          />
+          <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
       </div>
-    </Router>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </AuthProvider>
   );
 }
 

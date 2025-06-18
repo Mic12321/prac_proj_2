@@ -7,10 +7,11 @@ const categoryRoutes = require("../routes/category");
 const shoppingCartItemsRoutes = require("../routes/shoppingCartItems");
 const ingredientRoutes = require("../routes/ingredients");
 const checkoutRoutes = require("../routes/checkout");
+const authRoutes = require("../routes/auth");
 
 module.exports = function (app) {
   app.use(express.json());
-
+  app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/orders", orderRoutes);
   app.use("/api/items", itemRoutes);

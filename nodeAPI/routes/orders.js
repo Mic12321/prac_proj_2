@@ -8,6 +8,7 @@ const Item = require("../models/Item");
 const Payment = require("../models/Payment");
 const OrderProcessing = require("../models/OrderProcessing");
 const User = require("../models/User");
+const { sequelize } = require("../models/index");
 const { Op } = require("sequelize");
 
 router.post("/", async (req, res) => {
@@ -127,27 +128,36 @@ router.post("/:orderId/pick", async (req, res) => {
     return res.status(400).json({ error: "Staff ID is required" });
   }
 
+  const transaction = await sequelize.transaction();
+
   try {
-    // 1. Check if the order exists and is eligible
-    const order = await Orders.findByPk(orderId);
+    // Lock the order row to prevent concurrent changes
+    const order = await Orders.findByPk(orderId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
     if (!order || order.status !== "paid") {
+      await transaction.rollback();
       return res.status(400).json({ error: "Invalid or already picked order" });
     }
 
-    // 2. Prevent multiple staff from picking the same order
-    const activeProcessing = await OrderProcessing.findOne({
+    const existingProcessing = await OrderProcessing.findOne({
       where: {
         order_id: orderId,
-        status: { [Op.not]: "cancelled" }, // Only block if not cancelled
+        status: { [Op.not]: "cancelled" },
       },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
-    if (activeProcessing) {
+
+    if (existingProcessing) {
+      await transaction.rollback();
       return res
         .status(400)
         .json({ error: "Order already picked by someone else" });
     }
 
-    // 3. Close any existing active processing for the staff on this order
     await OrderProcessing.update(
       { status: "stop_picking" },
       {
@@ -156,22 +166,29 @@ router.post("/:orderId/pick", async (req, res) => {
           staff_id,
           status: { [Op.in]: ["picked", "processing"] },
         },
+        transaction,
       }
     );
 
-    // 4. Create a fresh order processing entry
-    await OrderProcessing.create({
-      order_id: orderId,
-      staff_id,
-      status: "picked",
-      picked_at: new Date(),
-    });
+    await OrderProcessing.create(
+      {
+        order_id: orderId,
+        staff_id,
+        status: "picked",
+        picked_at: new Date(),
+      },
+      { transaction }
+    );
 
-    // 4. Update the order status
-    await order.update({ status: "processing", last_updatetime: new Date() });
+    await order.update(
+      { status: "processing", last_updatetime: new Date() },
+      { transaction }
+    );
 
+    await transaction.commit();
     res.json({ message: `Order ${orderId} picked by staff ${staff_id}` });
   } catch (error) {
+    if (transaction) await transaction.rollback();
     console.error("Error in picking order:", error);
     res.status(500).json({ error: "Failed to assign order to staff" });
   }

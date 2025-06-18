@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { login } from "../services/authService";
 import logo from "../assets/logo.png";
 
-interface LoginProps {
-  setIsAuthenticated: (auth: boolean) => void;
-  setIsAdmin: (isAdmin: boolean) => void;
-}
+import { useAuth } from "../context/AuthContext";
 
-const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setIsAdmin }) => {
+const Login: React.FC = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,15 +21,12 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setIsAdmin }) => {
 
     setError("");
 
-    const { user, error: loginError } = await login({ username, password });
+    const { error: loginError } = await login({ username, password });
 
     if (loginError) {
       setError(loginError);
       return;
     }
-
-    setIsAuthenticated(true);
-    setIsAdmin(user?.role === "admin");
 
     navigate("/home");
   };

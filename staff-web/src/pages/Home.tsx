@@ -6,12 +6,12 @@ import pendingImg from "../assets/pending.png";
 import analysisImg from "../assets/analysis.png";
 import accountMangementImg from "../assets/account_management.png";
 import tempImg from "../assets/temp_picture.png";
+import { useAuth } from "../context/AuthContext";
 
-interface HomeProps {
-  isAdmin: boolean;
-}
+const Home: React.FC = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
-const Home: React.FC<HomeProps> = ({ isAdmin }) => {
   return (
     <div className="container d-flex flex-column align-items-center justify-content-center">
       <h2 className="mb-4 text-center">Welcome to Dashboard</h2>
@@ -48,7 +48,7 @@ const Home: React.FC<HomeProps> = ({ isAdmin }) => {
           image={tempImg}
           label="Picked Orders Button"
           displayName="View Picked Orders"
-          route="/staff/orders"
+          route="/staff/picked-orders"
         />
 
         {isAdmin && (

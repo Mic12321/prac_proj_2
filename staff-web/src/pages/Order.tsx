@@ -15,6 +15,7 @@ import {
 import ItemDetailPopup from "../components/ItemDetailPopUp";
 import { useNavigate } from "react-router";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { useAuth } from "../context/AuthContext";
 
 const Order: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -37,14 +38,15 @@ const Order: React.FC = () => {
 
   const navigate = useNavigate();
 
-  //
-  const userId = 1;
+  const { user } = useAuth();
+  const userId = user?.user_id;
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    if (!userId) return; // Guard for no user
     setLoading(true);
     try {
       const [itemsData, cartResponse, categoryData] = await Promise.all([
@@ -75,6 +77,7 @@ const Order: React.FC = () => {
   };
 
   const refreshCart = async () => {
+    if (!userId) return; // Guard for no user
     const cartResponse = await getShoppingCart(userId);
 
     const updatedCart = cartResponse.items.reduce(
@@ -91,6 +94,7 @@ const Order: React.FC = () => {
   };
 
   const handleAdd = async (itemId: number) => {
+    if (!userId) return; // Guard for no user
     try {
       const newQuantity = Number(cart[itemId] || 0) + 1;
 
@@ -107,6 +111,7 @@ const Order: React.FC = () => {
   };
 
   const handleRemove = async (itemId: number, removeAll: boolean = false) => {
+    if (!userId) return; // Guard for no user
     try {
       const currentQuantity = cart[itemId] || 0;
 
@@ -139,6 +144,7 @@ const Order: React.FC = () => {
   };
 
   const handleClearCart = async () => {
+    if (!userId) return; // Guard for no user
     try {
       await Promise.all(
         Object.keys(cart).map((itemId) =>
