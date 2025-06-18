@@ -1,15 +1,19 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import logo from "../assets/logo.png";
 
 import { useAuth } from "../context/AuthContext";
 
 const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
