@@ -46,11 +46,15 @@ async function login(req, res) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Verify password (assuming verifyPassword is defined on User model)
+    // Verify password
     const isValid = await user.verifyPassword(password);
     if (!isValid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    // Update last_login to current date/time
+    user.last_login = new Date();
+    await user.save();
 
     // Create JWTs
     const accessToken = generateAccessToken(user);

@@ -8,10 +8,12 @@ const {
   register,
   updateUser,
   deleteUser,
+  getAllUsers,
 } = require("../controllers/userController");
 
-router.post("/register", register);
-router.put("/:id", updateUser);
+router.post("/register", authenticateToken, requireAdmin, register);
+router.put("/:id", authenticateToken, requireAdmin, updateUser);
 router.delete("/:id", authenticateToken, requireAdmin, deleteUser);
+router.get("/", authenticateToken, requireAdmin, getAllUsers);
 
 module.exports = router;

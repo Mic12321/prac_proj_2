@@ -74,8 +74,28 @@ async function deleteUser(req, res) {
   }
 }
 
+async function getAllUsers(req, res) {
+  try {
+    const users = await User.findAll({
+      attributes: [
+        "user_id",
+        "username",
+        "account_creation",
+        "last_login",
+        "total_points",
+        "role",
+      ],
+    });
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+}
+
 module.exports = {
   register,
   updateUser,
   deleteUser,
+  getAllUsers,
 };
