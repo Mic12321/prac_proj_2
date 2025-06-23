@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Button } from "react-bootstrap";
+import { Table, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { UserData } from "../services/userService";
 
 interface UserTableProps {
@@ -31,54 +31,85 @@ const UserTable: React.FC<UserTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
-            <tr key={user.user_id}>
-              <td>{user.username}</td>
-              <td>{new Date(user.account_creation).toLocaleString()}</td>
-              <td>
-                {user.last_login
-                  ? new Date(user.last_login).toLocaleString()
-                  : "-"}
-              </td>
-              <td>{user.role}</td>
-              <td>{user.total_points}</td>
-              <td>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="me-2"
-                  onClick={() => onEditClick(user)}
-                >
-                  Edit Username
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="me-2"
-                  onClick={() => onResetPassword(user.user_id)}
-                >
-                  Reset Password
-                </Button>
-                {user.suspended ? (
+          {users.map((user) => {
+            const activeAdmins = users.filter(
+              (u) => u.role === "admin" && !u.suspended
+            ).length;
+
+            const isLastActiveAdmin =
+              user.role === "admin" && !user.suspended && activeAdmins === 1;
+
+            return (
+              <tr key={user.user_id}>
+                <td>{user.username}</td>
+                <td>{new Date(user.account_creation).toLocaleString()}</td>
+                <td>
+                  {user.last_login
+                    ? new Date(user.last_login).toLocaleString()
+                    : "-"}
+                </td>
+                <td>{user.role}</td>
+                <td>{user.total_points}</td>
+                <td>
                   <Button
                     size="sm"
-                    variant="success"
-                    onClick={() => onRestore(user.user_id)}
+                    variant="primary"
+                    className="me-2"
+                    onClick={() => onEditClick(user)}
                   >
-                    Restore
+                    Edit Username
                   </Button>
-                ) : (
                   <Button
                     size="sm"
-                    variant="danger"
-                    onClick={() => onSuspend(user.user_id)}
+                    variant="secondary"
+                    className="me-2"
+                    onClick={() => onResetPassword(user.user_id)}
                   >
-                    Suspend
+                    Reset Password
                   </Button>
-                )}
-              </td>
-            </tr>
-          ))}
+                  {user.suspended ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      className="me-2"
+                      onClick={() => onRestore(user.user_id)}
+                    >
+                      Restore
+                    </Button>
+                  ) : isLastActiveAdmin ? (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={
+                        <Tooltip id={`tooltip-disabled-${user.user_id}`}>
+                          Cannot suspend the last active admin.
+                        </Tooltip>
+                      }
+                    >
+                      <span className="d-inline-block me-2">
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          style={{ pointerEvents: "none" }}
+                          disabled
+                        >
+                          Suspend
+                        </Button>
+                      </span>
+                    </OverlayTrigger>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      className="me-2"
+                      onClick={() => onSuspend(user.user_id)}
+                    >
+                      Suspend
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
     </div>
