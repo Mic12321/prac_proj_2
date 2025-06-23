@@ -13,8 +13,10 @@ import ItemSearchBar from "../components/ItemSearchBar";
 import ItemTable from "../components/ItemTable";
 import { applySort } from "../utils/sorting";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { useAuth } from "../context/AuthContext";
 
 const SearchItem: React.FC = () => {
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -45,10 +47,17 @@ const SearchItem: React.FC = () => {
   const customClassCategoryFilterDropdown = "ms-2";
 
   const fetchData = useCallback(async () => {
+    if (!token) {
+      setToastVariant("danger");
+      setToastMessage("You must be logged in to access this page.");
+      setShowToast(true);
+      // logout();
+      return;
+    }
     try {
       const [categoriesData, itemsData] = await Promise.all([
         getCategories(),
-        getAllItems(),
+        getAllItems(token),
       ]);
 
       setCategories(categoriesData);
@@ -143,8 +152,19 @@ const SearchItem: React.FC = () => {
         setShowToast(true);
         return;
       }
+      if (!token) {
+        setToastVariant("danger");
+        setToastMessage("You must be logged in to update an item.");
+        setShowToast(true);
+        // logout();
+        return;
+      }
       try {
-        const updatedItem = await updateItem(editedItem.item_id!, editedItem);
+        const updatedItem = await updateItem(
+          editedItem.item_id!,
+          editedItem,
+          token
+        );
 
         if (updatedItem) {
           const updatedItems = items.map((item) =>
@@ -210,8 +230,15 @@ const SearchItem: React.FC = () => {
   };
 
   const handleDeleteConfirmItem = async (id: number) => {
+    if (!token) {
+      setToastVariant("danger");
+      setToastMessage("You must be logged in to delete an item.");
+      setShowToast(true);
+      // logout();
+      return;
+    }
     try {
-      const deleteSuccess = await deleteItem(id);
+      const deleteSuccess = await deleteItem(id, token);
 
       if (deleteSuccess) {
         setItems((prev) => prev.filter((item) => item.item_id !== id));

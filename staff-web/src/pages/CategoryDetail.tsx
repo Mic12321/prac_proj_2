@@ -17,8 +17,11 @@ import ToastNotification from "../components/ToastNotification";
 import ConfirmationModal from "../components/ConfirmationModal";
 import CategoryForm from "../components/CategoryForm";
 import { applySort } from "../utils/sorting";
+import { useAuth } from "../context/AuthContext";
 
 const CategoryDetail: React.FC = () => {
+  const { token, logout } = useAuth();
+
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
 
@@ -51,8 +54,18 @@ const CategoryDetail: React.FC = () => {
       if (categoryId) {
         setLoading(true);
         try {
+          if (!token) {
+            setToastVariant("danger");
+            setToastMessage("You must be logged in to view category details.");
+            setShowToast(true);
+            // logout();
+            return;
+          }
           const fetchedCategory = await getCategoryById(Number(categoryId));
-          const fetchedItems = await getItemsByCategoryId(Number(categoryId));
+          const fetchedItems = await getItemsByCategoryId(
+            Number(categoryId),
+            token
+          );
 
           if (fetchedCategory && fetchedItems) {
             const itemsWithCategoryName = fetchedItems.map((item) => ({
@@ -116,7 +129,19 @@ const CategoryDetail: React.FC = () => {
     }
 
     try {
-      const updatedItem = await updateItem(editedItem.item_id!, editedItem);
+      if (!token) {
+        setToastVariant("danger");
+        setToastMessage("You must be logged in to update an item.");
+        setShowToast(true);
+        // logout();
+        return;
+      }
+
+      const updatedItem = await updateItem(
+        editedItem.item_id!,
+        editedItem,
+        token
+      );
 
       if (updatedItem) {
         const updatedItems = items.map((item) =>
@@ -209,8 +234,16 @@ const CategoryDetail: React.FC = () => {
   };
 
   const handleDeleteConfirmItem = async (id: number) => {
+    if (!token) {
+      setToastVariant("danger");
+      setToastMessage("You must be logged in to delete an item.");
+      setShowToast(true);
+      // logout();
+      return;
+    }
+
     try {
-      const deleteSuccess = await deleteItem(id);
+      const deleteSuccess = await deleteItem(id, token);
 
       if (deleteSuccess) {
         setItems((prev) => prev.filter((item) => item.item_id !== id));

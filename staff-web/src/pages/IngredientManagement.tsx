@@ -16,8 +16,10 @@ import ItemTable from "../components/ItemTable";
 import IngredientTable from "../components/IngredientTable";
 import EditItemQuantityModal from "../components/EditItemQuantityModal";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { useAuth } from "../context/AuthContext";
 
 const IngredientManagement: React.FC = () => {
+  const { token, logout } = useAuth();
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
 
@@ -67,13 +69,21 @@ const IngredientManagement: React.FC = () => {
 
     const fetchData = async () => {
       try {
+        if (!token) {
+          setToastVariant("danger");
+          setToastMessage("You must be logged in to manage ingredients.");
+          setShowToast(true);
+          // logout();
+          return;
+        }
+
         const [
           fetchedItem,
           fetchedIngredients,
           fetchedAvailableItems,
           fetchedCategories,
         ] = await Promise.all([
-          getItemById(Number(itemId)),
+          getItemById(Number(itemId), token),
           getIngredients(Number(itemId)),
           getAvailableIngredients(Number(itemId)),
           getCategories(),

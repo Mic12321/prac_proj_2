@@ -15,8 +15,10 @@ import {
   getIngredientsUsedIn,
   Ingredient,
 } from "../services/ingredientService";
+import { useAuth } from "../context/AuthContext";
 
 const ItemDetail: React.FC = () => {
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const { itemId } = useParams();
   const [item, setItem] = useState<Item>();
@@ -36,8 +38,15 @@ const ItemDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchItem = async () => {
+      if (!token) {
+        setToastVariant("danger");
+        setToastMessage("You must be logged in to view item details.");
+        setShowToast(true);
+        // logout();
+        return;
+      }
       try {
-        const fetchedItem = await getItemById(Number(itemId));
+        const fetchedItem = await getItemById(Number(itemId), token);
         setItem(fetchedItem);
       } catch (error: any) {
         setToastVariant("danger");
@@ -91,7 +100,15 @@ const ItemDetail: React.FC = () => {
 
   const handleSubmit = async (data: Item) => {
     try {
-      await updateItem(data.item_id!, data);
+      if (!token) {
+        setToastVariant("danger");
+        setToastMessage("You must be logged in to update an item.");
+        setShowToast(true);
+        // logout();
+        return;
+      }
+
+      await updateItem(data.item_id!, data, token);
 
       setToastMessage("Item updated successfully!");
       setToastVariant("success");
@@ -122,7 +139,14 @@ const ItemDetail: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (itemToDelete !== null) {
       try {
-        await deleteItem(itemToDelete);
+        if (!token) {
+          setToastVariant("danger");
+          setToastMessage("You must be logged in to delete an item.");
+          setShowToast(true);
+          // logout();
+          return;
+        }
+        await deleteItem(itemToDelete, token);
 
         setToastMessage("Item deleted successfully!");
         setToastVariant("success");

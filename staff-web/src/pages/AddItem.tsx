@@ -4,8 +4,10 @@ import ItemForm from "../components/ItemForm";
 import NavigateButton from "../components/NavigateButton";
 import { addItem } from "../services/itemService";
 import ToastNotification from "../components/ToastNotification";
+import { useAuth } from "../context/AuthContext";
 
 const AddItem: React.FC = () => {
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -14,8 +16,15 @@ const AddItem: React.FC = () => {
   );
 
   const handleSubmit = async (data: any) => {
+    if (!token) {
+      setToastVariant("danger");
+      setToastMessage("You must be logged in to add an item.");
+      setShowToast(true);
+      // logout();
+      return;
+    }
     try {
-      await addItem(data);
+      await addItem(data, token);
 
       setToastMessage("Item added successfully!");
       setToastVariant("success");

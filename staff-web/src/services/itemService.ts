@@ -14,12 +14,16 @@ export interface Item {
   category_name?: string;
 }
 
-export const addItem = async (item: Omit<Item, "item_id">): Promise<Item> => {
+export async function addItem(
+  item: Omit<Item, "item_id">,
+  token: string
+): Promise<Item> {
   try {
     const response = await fetch(API_ROUTES.ITEMS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(item),
     });
@@ -39,14 +43,19 @@ export const addItem = async (item: Omit<Item, "item_id">): Promise<Item> => {
 
     throw error;
   }
-};
+}
 
-export const updateItem = async (id: number, itemData: Item): Promise<Item> => {
+export async function updateItem(
+  id: number,
+  itemData: Item,
+  token: string
+): Promise<Item> {
   try {
     const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(itemData),
     });
@@ -66,11 +75,17 @@ export const updateItem = async (id: number, itemData: Item): Promise<Item> => {
 
     throw error;
   }
-};
+}
 
-export const getItemsForSale = async (): Promise<Item[]> => {
+export async function getItemsForSale(token: string): Promise<Item[]> {
   try {
-    const response = await fetch(`${API_ROUTES.ITEMS}/for-sale`);
+    const response = await fetch(`${API_ROUTES.ITEMS}/for-sale`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Error fetching items for sale");
@@ -87,11 +102,17 @@ export const getItemsForSale = async (): Promise<Item[]> => {
 
     throw error;
   }
-};
+}
 
-export const getAllItems = async (): Promise<Item[]> => {
+export async function getAllItems(token: string): Promise<Item[]> {
   try {
-    const response = await fetch(API_ROUTES.ITEMS);
+    const response = await fetch(API_ROUTES.ITEMS, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -109,11 +130,17 @@ export const getAllItems = async (): Promise<Item[]> => {
     }
     throw error;
   }
-};
+}
 
-export const getItemById = async (id: number): Promise<Item> => {
+export async function getItemById(id: number, token: string): Promise<Item> {
   try {
-    const response = await fetch(`${API_ROUTES.ITEMS}/${id}`);
+    const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Error fetching items");
@@ -130,12 +157,19 @@ export const getItemById = async (id: number): Promise<Item> => {
     }
     throw error;
   }
-};
+}
 
-export const deleteItem = async (id: number): Promise<{ message: string }> => {
+export async function deleteItem(
+  id: number,
+  token: string
+): Promise<{ message: string }> {
   try {
     const response = await fetch(`${API_ROUTES.ITEMS}/${id}`, {
       method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -154,14 +188,22 @@ export const deleteItem = async (id: number): Promise<{ message: string }> => {
     }
     throw error;
   }
-};
+}
 
-export const getItemsByCategoryId = async (
-  categoryId: number
-): Promise<Item[]> => {
+export async function getItemsByCategoryId(
+  categoryId: number,
+  token: string
+): Promise<Item[]> {
   try {
     const response = await fetch(
-      `${API_ROUTES.ITEMS}/by-category/${categoryId}`
+      `${API_ROUTES.ITEMS}/by-category/${categoryId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     if (!response.ok) {
@@ -181,4 +223,4 @@ export const getItemsByCategoryId = async (
     }
     throw error;
   }
-};
+}

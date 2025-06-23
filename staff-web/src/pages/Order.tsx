@@ -18,6 +18,7 @@ import ConfirmationModal from "../components/ConfirmationModal";
 import { useAuth } from "../context/AuthContext";
 
 const Order: React.FC = () => {
+  const { token, logout, user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [cart, setCart] = useState<{ [key: number]: number }>({});
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,6 @@ const Order: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const { user } = useAuth();
   const userId = user?.user_id;
 
   useEffect(() => {
@@ -47,10 +47,14 @@ const Order: React.FC = () => {
 
   const fetchData = async () => {
     if (!userId) return; // Guard for no user
+    if (!token) {
+      setError("You must be logged in to view this page.");
+      return;
+    }
     setLoading(true);
     try {
       const [itemsData, cartResponse, categoryData] = await Promise.all([
-        getItemsForSale(),
+        getItemsForSale(token),
         getShoppingCart(userId),
         getCategories(),
       ]);
