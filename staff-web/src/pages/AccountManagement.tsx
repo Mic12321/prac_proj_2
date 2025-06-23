@@ -10,28 +10,34 @@ import {
 } from "../services/userService";
 import ToastNotification from "../components/ToastNotification";
 import UserTable from "../components/UserTable";
+import EditUsernameModal from "../components/EditUsernameModal";
 import { useAuth } from "../context/AuthContext";
-
-type RegisterForm = UserRegisterData & { confirmPassword: string };
+import ResetPasswordModal from "../components/ResetPasswordModal";
 
 const AccountManagement: React.FC = () => {
-  const [formData, setFormData] = useState<RegisterForm>({
+  const [formData, setFormData] = useState<UserRegisterData>({
     username: "",
     password: "",
-    confirmPassword: "",
     role: "staff",
   });
-
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{
-    show: boolean;
-    message: string;
-    variant: "success" | "danger" | "info";
-  }>({ show: false, message: "", variant: "info" });
-
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    variant: "info" as "success" | "danger" | "info",
+  });
   const [users, setUsers] = useState<UserData[]>([]);
-
   const { token, logout } = useAuth();
+
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [newUsername, setNewUsername] = useState("");
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPasswordData, setResetPasswordData] = useState({
+    userId: 0,
+    password: "",
+    confirmPassword: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -42,7 +48,6 @@ const AccountManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.username.trim() || !formData.password.trim()) {
       setToast({
         show: true,
@@ -51,8 +56,7 @@ const AccountManagement: React.FC = () => {
       });
       return;
     }
-
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== confirmPassword) {
       setToast({
         show: true,
         message: "Passwords do not match.",
@@ -60,7 +64,6 @@ const AccountManagement: React.FC = () => {
       });
       return;
     }
-
     if (!token) {
       setToast({
         show: true,
@@ -69,29 +72,17 @@ const AccountManagement: React.FC = () => {
       });
       return;
     }
-
     setLoading(true);
     try {
-      await registerUser(
-        {
-          username: formData.username,
-          password: formData.password,
-          role: formData.role,
-        },
-        token
-      );
+      await registerUser(formData, token);
       setToast({
         show: true,
         message: `Staff account "${formData.username}" created successfully!`,
         variant: "success",
       });
-      setFormData({
-        username: "",
-        password: "",
-        confirmPassword: "",
-        role: "staff",
-      });
-      await loadUsers();
+      setFormData({ username: "", password: "", role: "staff" });
+      setConfirmPassword("");
+      loadUsers();
     } catch (err: any) {
       setToast({
         show: true,
@@ -105,7 +96,6 @@ const AccountManagement: React.FC = () => {
 
   const loadUsers = async () => {
     if (!token) return;
-
     setLoading(true);
     try {
       const data = await fetchUsers(token);
@@ -122,43 +112,75 @@ const AccountManagement: React.FC = () => {
   };
 
   const handleUpdate = async (userId: number, update: UserUpdateData) => {
-    if (!token) {
-      setToast({
-        show: true,
-        message: "You must be logged in to update users.",
-        variant: "danger",
-      });
-      return;
-    }
+    if (!token) return;
     await updateUser(userId, update, token);
     loadUsers();
   };
 
   const handleDelete = async (userId: number) => {
-    if (!token) {
-      setToast({
-        show: true,
-        message: "You must be logged in to delete users.",
-        variant: "danger",
-      });
-      return;
-    }
+    if (!token) return;
     if (window.confirm("Are you sure you want to delete this user?")) {
       await deleteUser(userId, token);
       loadUsers();
     }
   };
 
-  const handleResetPassword = async (userId: number) => {
-    if (!token) {
+  const handleResetPassword = (userId: number) => {
+    setResetPasswordData({ userId, password: "", confirmPassword: "" });
+    setShowResetModal(true);
+  };
+
+  const submitResetPassword = async () => {
+    const { userId, password, confirmPassword } = resetPasswordData;
+
+    if (!password || !confirmPassword) {
       setToast({
         show: true,
-        message: "You must be logged in to reset passwords.",
+        message: "Both password fields are required.",
         variant: "danger",
       });
       return;
     }
-    console.log(`Handling password reset for user ID: ${userId}`);
+
+    if (password !== confirmPassword) {
+      setToast({
+        show: true,
+        message: "Passwords do not match.",
+        variant: "danger",
+      });
+      return;
+    }
+
+    try {
+      await updateUser(userId, { password }, token!);
+      setToast({
+        show: true,
+        message: "Password reset successfully.",
+        variant: "success",
+      });
+      setShowResetModal(false);
+    } catch (err: any) {
+      setToast({
+        show: true,
+        message: err.message || "Failed to reset password.",
+        variant: "danger",
+      });
+    }
+  };
+
+  const handleEditClick = (user: UserData) => {
+    setEditingUser(user);
+  };
+
+  const handleSaveUsername = async () => {
+    if (editingUser) {
+      await handleUpdate(editingUser.user_id, { username: newUsername });
+      setEditingUser(null);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingUser(null);
   };
 
   useEffect(() => {
@@ -201,6 +223,7 @@ const AccountManagement: React.FC = () => {
             autoComplete="new-password"
           />
         </div>
+
         <div className="mb-3">
           <label htmlFor="confirmPassword" className="form-label">
             Confirm Password:
@@ -210,8 +233,8 @@ const AccountManagement: React.FC = () => {
             id="confirmPassword"
             name="confirmPassword"
             className="form-control"
-            value={formData.confirmPassword}
-            onChange={handleChange}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={loading}
             autoComplete="new-password"
           />
@@ -221,12 +244,36 @@ const AccountManagement: React.FC = () => {
           {loading ? "Creating..." : "Create Staff Account"}
         </button>
       </form>
+
       <div className="mt-4" />
       <UserTable
         users={users}
-        onUpdate={handleUpdate}
+        onEditClick={handleEditClick}
         onDelete={handleDelete}
         onResetPassword={handleResetPassword}
+      />
+
+      <EditUsernameModal
+        show={!!editingUser}
+        user={editingUser}
+        newUsername={newUsername}
+        onUsernameChange={setNewUsername}
+        onSave={handleSaveUsername}
+        onClose={handleCloseEditModal}
+      />
+
+      <ResetPasswordModal
+        show={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onSubmit={submitResetPassword}
+        password={resetPasswordData.password}
+        confirmPassword={resetPasswordData.confirmPassword}
+        onPasswordChange={(val) =>
+          setResetPasswordData((prev) => ({ ...prev, password: val }))
+        }
+        onConfirmPasswordChange={(val) =>
+          setResetPasswordData((prev) => ({ ...prev, confirmPassword: val }))
+        }
       />
 
       <ToastNotification
