@@ -1,4 +1,5 @@
 const { User } = require("../models");
+const { Op } = require("sequelize");
 
 async function register(req, res) {
   try {
@@ -99,11 +100,28 @@ async function suspendUser(req, res) {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    if (user.role === "admin") {
+      const activeAdmins = await User.count({
+        where: {
+          role: "admin",
+          suspended: false,
+          user_id: { [Op.ne]: user.user_id },
+        },
+      });
+
+      if (activeAdmins === 0) {
+        return res.status(400).json({
+          error: "Cannot suspend the last active admin",
+        });
+      }
+    }
+
     user.suspended = true;
     await user.save();
 
-    res.json({ message: "User login suspended successfully." });
+    res.json({ message: "User suspended successfully." });
   } catch (err) {
+    console.error("Suspend error:", err);
     res.status(500).json({ error: "Failed to suspend user." });
   }
 }
