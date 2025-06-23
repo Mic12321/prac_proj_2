@@ -84,6 +84,7 @@ async function getAllUsers(req, res) {
         "last_login",
         "total_points",
         "role",
+        "suspended",
       ],
     });
 
@@ -93,9 +94,39 @@ async function getAllUsers(req, res) {
   }
 }
 
+async function suspendUser(req, res) {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.suspended = true;
+    await user.save();
+
+    res.json({ message: "User login suspended successfully." });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to suspend user." });
+  }
+}
+
+async function restoreUser(req, res) {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.suspended = false;
+    await user.save();
+
+    res.json({ message: "User restored successfully." });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to restore user." });
+  }
+}
+
 module.exports = {
   register,
   updateUser,
   deleteUser,
   getAllUsers,
+  suspendUser,
+  restoreUser,
 };

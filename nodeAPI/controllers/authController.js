@@ -46,6 +46,11 @@ async function login(req, res) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    // Check if user is suspended
+    if (user.suspended) {
+      return res.status(403).json({ error: "Account is suspended." });
+    }
+
     // Verify password
     const isValid = await user.verifyPassword(password);
     if (!isValid) {

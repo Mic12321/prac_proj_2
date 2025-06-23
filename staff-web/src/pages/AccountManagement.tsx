@@ -4,9 +4,10 @@ import {
   UserRegisterData,
   UserData,
   fetchUsers,
-  deleteUser,
   updateUser,
   UserUpdateData,
+  suspendUser,
+  restoreUser,
 } from "../services/userService";
 import ToastNotification from "../components/ToastNotification";
 import UserTable from "../components/UserTable";
@@ -117,14 +118,6 @@ const AccountManagement: React.FC = () => {
     loadUsers();
   };
 
-  const handleDelete = async (userId: number) => {
-    if (!token) return;
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      await deleteUser(userId, token);
-      loadUsers();
-    }
-  };
-
   const handleResetPassword = (userId: number) => {
     setResetPasswordData({ userId, password: "", confirmPassword: "" });
     setShowResetModal(true);
@@ -181,6 +174,46 @@ const AccountManagement: React.FC = () => {
 
   const handleCloseEditModal = () => {
     setEditingUser(null);
+  };
+
+  const handleSuspend = async (userId: number) => {
+    if (!token) return;
+
+    try {
+      await suspendUser(userId, token);
+      loadUsers();
+      setToast({
+        show: true,
+        message: "User login suspended.",
+        variant: "success",
+      });
+    } catch (err: any) {
+      setToast({
+        show: true,
+        message: err.message || "Failed to suspend login.",
+        variant: "danger",
+      });
+    }
+  };
+
+  const handleRestore = async (userId: number) => {
+    if (!token) return;
+
+    try {
+      await restoreUser(userId, token);
+      loadUsers();
+      setToast({
+        show: true,
+        message: "User login restored.",
+        variant: "success",
+      });
+    } catch (err: any) {
+      setToast({
+        show: true,
+        message: err.message || "Failed to restore login.",
+        variant: "danger",
+      });
+    }
   };
 
   useEffect(() => {
@@ -249,7 +282,8 @@ const AccountManagement: React.FC = () => {
       <UserTable
         users={users}
         onEditClick={handleEditClick}
-        onDelete={handleDelete}
+        onSuspend={handleSuspend}
+        onRestore={handleRestore}
         onResetPassword={handleResetPassword}
       />
 

@@ -37,6 +37,11 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: "client",
     },
+    suspended: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
     tableName: "user",

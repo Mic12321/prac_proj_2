@@ -21,6 +21,7 @@ export interface UserData {
   last_login: string | null;
   total_points: number;
   role: "staff" | "admin" | "client";
+  suspended?: boolean;
 }
 
 async function handleResponse(response: Response) {
@@ -77,6 +78,30 @@ export async function fetchUsers(token: string): Promise<UserData[]> {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
+  });
+  return handleResponse(response);
+}
+
+export async function suspendUser(userId: number, token: string) {
+  const response = await fetch(`${API_ROUTES.USERS}/${userId}/suspend`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ suspended: true }),
+  });
+  return handleResponse(response);
+}
+
+export async function restoreUser(userId: number, token: string) {
+  const response = await fetch(`${API_ROUTES.USERS}/${userId}/restore`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ suspended: false }),
   });
   return handleResponse(response);
 }

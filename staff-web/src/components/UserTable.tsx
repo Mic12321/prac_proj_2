@@ -5,14 +5,16 @@ import { UserData } from "../services/userService";
 interface UserTableProps {
   users: UserData[];
   onEditClick: (user: UserData) => void;
-  onDelete: (userId: number) => Promise<void>;
+  onSuspend: (userId: number) => Promise<void>;
+  onRestore: (userId: number) => Promise<void>;
   onResetPassword: (userId: number) => void;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
   users,
   onEditClick,
-  onDelete,
+  onSuspend,
+  onRestore,
   onResetPassword,
 }) => {
   return (
@@ -57,14 +59,23 @@ const UserTable: React.FC<UserTableProps> = ({
                 >
                   Reset Password
                 </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onDelete(user.user_id)}
-                  disabled={true} // Disable delete button for now
-                >
-                  Delete
-                </Button>
+                {user.suspended ? (
+                  <Button
+                    size="sm"
+                    variant="success"
+                    onClick={() => onRestore(user.user_id)}
+                  >
+                    Restore
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => onSuspend(user.user_id)}
+                  >
+                    Suspend
+                  </Button>
+                )}
               </td>
             </tr>
           ))}
